@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
+import { Modal, View, StyleSheet, SafeAreaView } from "react-native"
+import { Button, Input, Header } from "react-native-elements"
+import Icon from "react-native-vector-icons/MaterialIcons"
+import Toast from "react-native-toast-message"
 import { addMember } from "../lib/database"
-import { useToast } from "../hooks/useToast"
 
 interface AddMemberModalProps {
   visible: boolean
@@ -16,11 +17,14 @@ interface AddMemberModalProps {
 export default function AddMemberModal({ visible, onClose, groupId, onSuccess }: AddMemberModalProps) {
   const [name, setName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { showToast } = useToast()
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      showToast("Please enter a name", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please enter a name",
+      })
       return
     }
 
@@ -28,15 +32,26 @@ export default function AddMemberModal({ visible, onClose, groupId, onSuccess }:
     try {
       const member = await addMember(groupId, name.trim())
       if (member) {
-        showToast(`${member.name} added to the group`, "success")
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: `${member.name} added to the group`,
+        })
         setName("")
-        onClose()
         onSuccess()
       } else {
-        showToast("Failed to add member. Name might already exist.", "error")
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to add member. Name might already exist.",
+        })
       }
     } catch (error) {
-      showToast("Something went wrong", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Something went wrong",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -48,119 +63,78 @@ export default function AddMemberModal({ visible, onClose, groupId, onSuccess }:
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add New Member</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.container}>
+        <Header
+          centerComponent={{
+            text: "Add New Member",
+            style: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+          }}
+          rightComponent={<Icon name="close" size={24} color="#fff" onPress={handleClose} />}
+          backgroundColor="#2196F3"
+        />
 
-          <View style={styles.content}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter member name"
-              value={name}
-              onChangeText={setName}
-              onSubmitEditing={handleSubmit}
-              autoFocus
+        <View style={styles.content}>
+          <Input
+            label="Name"
+            placeholder="Enter member name"
+            value={name}
+            onChangeText={setName}
+            containerStyle={styles.inputContainer}
+            autoFocus
+          />
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Cancel"
+              onPress={handleClose}
+              buttonStyle={[styles.button, styles.cancelButton]}
+              titleStyle={styles.cancelButtonText}
             />
-
-            <View style={styles.buttons}>
-              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleClose}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, styles.submitButton]}
-                onPress={handleSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Add Member</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            <Button
+              title={isSubmitting ? "Adding..." : "Add Member"}
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              buttonStyle={[styles.button, styles.submitButton]}
+            />
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   )
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modal: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    width: "100%",
-    maxWidth: 400,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1f2937",
+    backgroundColor: "#f5f5f5",
   },
   content: {
+    flex: 1,
     padding: 20,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
+  inputContainer: {
+    marginBottom: 30,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  buttons: {
+  buttonContainer: {
     flexDirection: "row",
-    gap: 12,
+    justifyContent: "space-between",
+    gap: 15,
   },
   button: {
     flex: 1,
-    padding: 14,
     borderRadius: 8,
-    alignItems: "center",
+    paddingVertical: 12,
   },
   cancelButton: {
     backgroundColor: "transparent",
+    borderColor: "#ccc",
     borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  submitButton: {
-    backgroundColor: "#2563eb",
   },
   cancelButtonText: {
-    color: "#6b7280",
-    fontWeight: "600",
+    color: "#666",
   },
-  submitButtonText: {
-    color: "white",
-    fontWeight: "600",
+  submitButton: {
+    backgroundColor: "#2196F3",
   },
 })

@@ -71,6 +71,7 @@ export async function updateMemberName(memberId: string, name: string): Promise<
 }
 
 export async function removeMember(memberId: string): Promise<boolean> {
+  // First check if member has any expenses or splits
   const { data: expenses } = await supabase.from("expenses").select("id").eq("paid_by", memberId).limit(1)
 
   const { data: splits } = await supabase.from("expense_splits").select("id").eq("member_id", memberId).limit(1)
@@ -121,6 +122,7 @@ export async function addExpense(
     return null
   }
 
+  // Add splits
   const splitData = splits.map((split) => ({
     expense_id: expense.id,
     member_id: split.memberId,
@@ -164,6 +166,51 @@ export async function getExpenseSplits(expenseId: string): Promise<ExpenseSplit[
   return data || []
 }
 
+export async function updateExpense(
+  expenseId: string,
+  description: string,
+  amount: number,
+  paidBy: string,
+  splits: { memberId: string; amount: number }[],
+  category = "General",
+): Promise<boolean> {
+  // Update expense
+  const { error: expenseError } = await supabase
+    .from("expenses")
+    .update({
+      description,
+      amount,
+      paid_by: paidBy,
+      category,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", expenseId)
+
+  if (expenseError) {
+    console.error("Error updating expense:", expenseError)
+    return false
+  }
+
+  // Delete existing splits
+  await supabase.from("expense_splits").delete().eq("expense_id", expenseId)
+
+  // Add new splits
+  const splitData = splits.map((split) => ({
+    expense_id: expenseId,
+    member_id: split.memberId,
+    amount: split.amount,
+  }))
+
+  const { error: splitError } = await supabase.from("expense_splits").insert(splitData)
+
+  if (splitError) {
+    console.error("Error updating splits:", splitError)
+    return false
+  }
+
+  return true
+}
+
 export async function deleteExpense(expenseId: string): Promise<boolean> {
   const { error } = await supabase.from("expenses").delete().eq("id", expenseId)
 
@@ -175,21 +222,26 @@ export async function deleteExpense(expenseId: string): Promise<boolean> {
   return true
 }
 
+// Balance calculations
 export async function getBalances(groupId: string): Promise<Balance[]> {
   const members = await getMembers(groupId)
   const expenses = await getExpenses(groupId)
 
   const balances: { [memberId: string]: number } = {}
 
+  // Initialize balances
   members.forEach((member) => {
     balances[member.id] = 0
   })
 
+  // Calculate balances
   for (const expense of expenses) {
+    // Add amount paid
     if (balances[expense.paid_by] !== undefined) {
       balances[expense.paid_by] += expense.amount
     }
 
+    // Subtract splits
     const splits = await getExpenseSplits(expense.id)
     splits.forEach((split) => {
       if (balances[split.member_id] !== undefined) {

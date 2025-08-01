@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
+import React, { useState } from "react"
+import { Modal, View, Text, StyleSheet, SafeAreaView, ScrollView, Switch } from "react-native"
+import { Button, Input, Header, CheckBox } from "react-native-elements"
+import { Picker } from "@react-native-picker/picker"
+import Icon from "react-native-vector-icons/MaterialIcons"
+import Toast from "react-native-toast-message"
 import { addExpense } from "../lib/database"
 import type { Member } from "../lib/supabase"
-import { useToast } from "../hooks/useToast"
 
 interface AddExpenseModalProps {
   visible: boolean
@@ -19,51 +21,108 @@ export default function AddExpenseModal({ visible, onClose, groupId, members, on
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
   const [paidBy, setPaidBy] = useState("")
+  const [category, setCategory] = useState("General")
+  const [splitType, setSplitType] = useState<"equal" | "custom">("equal")
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+  const [customSplits, setCustomSplits] = useState<{ [memberId: string]: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { showToast } = useToast()
 
-  useEffect(() => {
-    if (members.length > 0 && selectedMembers.length === 0) {
+  const categories = [
+    "General",
+    "Food",
+    "Transportation",
+    "Entertainment",
+    "Accommodation",
+    "Shopping",
+    "Utilities",
+    "Other",
+  ]
+
+  React.useEffect(() => {
+    if (visible && members.length > 0 && selectedMembers.length === 0) {
+      // Initially select all members when modal opens
       setSelectedMembers(members.map((member) => member.id))
     }
-    if (members.length > 0 && !paidBy) {
-      setPaidBy(members[0].id)
+  }, [visible, members])
+
+  const calculateSplits = () => {
+    const totalAmount = Number.parseFloat(amount)
+    if (!totalAmount || selectedMembers.length === 0) return []
+
+    const splits: { memberId: string; amount: number }[] = []
+
+    if (splitType === "equal") {
+      const splitAmount = totalAmount / selectedMembers.length
+      selectedMembers.forEach((memberId) => {
+        splits.push({ memberId, amount: splitAmount })
+      })
+    } else {
+      selectedMembers.forEach((memberId) => {
+        const splitAmount = Number.parseFloat(customSplits[memberId] || "0")
+        splits.push({ memberId, amount: splitAmount })
+      })
     }
-  }, [members, visible])
+
+    return splits
+  }
+
+  const validateSplits = () => {
+    const totalAmount = Number.parseFloat(amount)
+    const splits = calculateSplits()
+    const totalSplit = splits.reduce((sum, split) => sum + split.amount, 0)
+
+    if (splitType === "custom") {
+      return Math.abs(totalSplit - totalAmount) < 0.01
+    }
+
+    return true
+  }
 
   const handleSubmit = async () => {
     if (!description.trim() || !amount || !paidBy || selectedMembers.length === 0) {
-      showToast("Please fill in all required fields", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all required fields",
+      })
       return
     }
 
-    const totalAmount = Number.parseFloat(amount)
-    if (isNaN(totalAmount) || totalAmount <= 0) {
-      showToast("Please enter a valid amount", "error")
+    if (!validateSplits()) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Split amounts don't add up correctly",
+      })
       return
     }
 
     setIsSubmitting(true)
     try {
-      const splitAmount = totalAmount / selectedMembers.length
-      const splits = selectedMembers.map((memberId) => ({
-        memberId,
-        amount: splitAmount,
-      }))
-
-      const expense = await addExpense(groupId, description.trim(), totalAmount, paidBy, splits)
+      const splits = calculateSplits()
+      const expense = await addExpense(groupId, description.trim(), Number.parseFloat(amount), paidBy, splits, category)
 
       if (expense) {
-        showToast("Expense added successfully", "success")
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Expense added successfully",
+        })
         resetForm()
-        onClose()
         onSuccess()
       } else {
-        showToast("Failed to add expense", "error")
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to add expense",
+        })
       }
     } catch (error) {
-      showToast("Something went wrong", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Something went wrong",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -72,8 +131,11 @@ export default function AddExpenseModal({ visible, onClose, groupId, members, on
   const resetForm = () => {
     setDescription("")
     setAmount("")
-    setPaidBy(members.length > 0 ? members[0].id : "")
+    setPaidBy("")
+    setCategory("General")
+    setSplitType("equal")
     setSelectedMembers(members.map((member) => member.id))
+    setCustomSplits({})
   }
 
   const handleClose = () => {
@@ -81,288 +143,245 @@ export default function AddExpenseModal({ visible, onClose, groupId, members, on
     onClose()
   }
 
-  const toggleMember = (memberId: string) => {
-    if (selectedMembers.includes(memberId)) {
-      setSelectedMembers(selectedMembers.filter((id) => id !== memberId))
-    } else {
+  const handleMemberToggle = (memberId: string, checked: boolean) => {
+    if (checked) {
       setSelectedMembers([...selectedMembers, memberId])
+    } else {
+      setSelectedMembers(selectedMembers.filter((id) => id !== memberId))
+      const newCustomSplits = { ...customSplits }
+      delete newCustomSplits[memberId]
+      setCustomSplits(newCustomSplits)
     }
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add New Expense</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.container}>
+        <Header
+          centerComponent={{
+            text: "Add New Expense",
+            style: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+          }}
+          rightComponent={<Icon name="close" size={24} color="#fff" onPress={handleClose} />}
+          backgroundColor="#2196F3"
+        />
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <Input
+            label="Description *"
+            placeholder="e.g., Dinner at restaurant"
+            value={description}
+            onChangeText={setDescription}
+            containerStyle={styles.inputContainer}
+          />
+
+          <Input
+            label="Amount *"
+            placeholder="0.00"
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
+            containerStyle={styles.inputContainer}
+          />
+
+          <View style={styles.pickerContainer}>
+            <Text style={styles.pickerLabel}>Category</Text>
+            <Picker selectedValue={category} onValueChange={setCategory} style={styles.picker}>
+              {categories.map((cat) => (
+                <Picker.Item key={cat} label={cat} value={cat} />
+              ))}
+            </Picker>
           </View>
 
-          <ScrollView style={styles.content}>
-            <View style={styles.field}>
-              <Text style={styles.label}>Description *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Dinner at restaurant"
-                value={description}
-                onChangeText={setDescription}
+          <View style={styles.pickerContainer}>
+            <Text style={styles.pickerLabel}>Paid by *</Text>
+            <Picker selectedValue={paidBy} onValueChange={setPaidBy} style={styles.picker}>
+              <Picker.Item label="Select who paid" value="" />
+              {members.map((member) => (
+                <Picker.Item key={member.id} label={member.name} value={member.id} />
+              ))}
+            </Picker>
+          </View>
+
+          <View style={styles.splitTypeContainer}>
+            <Text style={styles.sectionTitle}>Split Type</Text>
+            <View style={styles.switchContainer}>
+              <Text>Equal Split</Text>
+              <Switch
+                value={splitType === "custom"}
+                onValueChange={(value) => setSplitType(value ? "custom" : "equal")}
               />
+              <Text>Custom Split</Text>
             </View>
+          </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Amount *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="0.00"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>Paid by *</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.memberSelector}>
-                {members.map((member) => (
-                  <TouchableOpacity
-                    key={member.id}
-                    style={[styles.memberOption, paidBy === member.id && styles.selectedMemberOption]}
-                    onPress={() => setPaidBy(member.id)}
-                  >
-                    <Text style={[styles.memberOptionText, paidBy === member.id && styles.selectedMemberOptionText]}>
-                      {member.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>Split between *</Text>
-              <View style={styles.membersList}>
-                {members.map((member) => (
-                  <TouchableOpacity key={member.id} style={styles.memberItem} onPress={() => toggleMember(member.id)}>
-                    <View style={styles.memberInfo}>
-                      <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>{member.name.charAt(0).toUpperCase()}</Text>
-                      </View>
-                      <Text style={styles.memberName}>{member.name}</Text>
-                    </View>
-                    <View style={[styles.checkbox, selectedMembers.includes(member.id) && styles.checkedCheckbox]}>
-                      {selectedMembers.includes(member.id) && <Ionicons name="checkmark" size={16} color="white" />}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {selectedMembers.length > 0 && amount && (
-              <View style={styles.preview}>
-                <Text style={styles.previewTitle}>Split Preview:</Text>
-                {selectedMembers.map((memberId) => {
-                  const member = members.find((m) => m.id === memberId)
-                  const splitAmount = Number.parseFloat(amount) / selectedMembers.length
-                  return (
-                    <View key={memberId} style={styles.previewItem}>
-                      <Text style={styles.previewName}>{member?.name}</Text>
-                      <Text style={styles.previewAmount}>${isNaN(splitAmount) ? "0.00" : splitAmount.toFixed(2)}</Text>
-                    </View>
-                  )
-                })}
-              </View>
-            )}
-
-            <View style={styles.buttons}>
-              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleClose}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, styles.submitButton]}
-                onPress={handleSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Add Expense</Text>
+          <View style={styles.membersContainer}>
+            <Text style={styles.sectionTitle}>Who's involved? *</Text>
+            {members.map((member) => (
+              <View key={member.id} style={styles.memberRow}>
+                <CheckBox
+                  title={member.name}
+                  checked={selectedMembers.includes(member.id)}
+                  onPress={() => handleMemberToggle(member.id, !selectedMembers.includes(member.id))}
+                  containerStyle={styles.checkboxContainer}
+                />
+                {selectedMembers.includes(member.id) && splitType === "custom" && (
+                  <Input
+                    placeholder="0.00"
+                    value={customSplits[member.id] || ""}
+                    onChangeText={(text) =>
+                      setCustomSplits({
+                        ...customSplits,
+                        [member.id]: text,
+                      })
+                    }
+                    keyboardType="numeric"
+                    containerStyle={styles.customSplitInput}
+                  />
                 )}
-              </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+
+          {/* Split Preview */}
+          {selectedMembers.length > 0 && amount && (
+            <View style={styles.previewContainer}>
+              <Text style={styles.sectionTitle}>Split Preview</Text>
+              {calculateSplits().map((split) => {
+                const member = members.find((m) => m.id === split.memberId)
+                return (
+                  <View key={split.memberId} style={styles.previewRow}>
+                    <Text>{member?.name}</Text>
+                    <Text>${split.amount.toFixed(2)}</Text>
+                  </View>
+                )
+              })}
+              <View style={styles.previewTotal}>
+                <Text style={styles.previewTotalText}>Total: ${Number.parseFloat(amount).toFixed(2)}</Text>
+              </View>
             </View>
-          </ScrollView>
-        </View>
-      </View>
+          )}
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Cancel"
+              onPress={handleClose}
+              buttonStyle={[styles.button, styles.cancelButton]}
+              titleStyle={styles.cancelButtonText}
+            />
+            <Button
+              title={isSubmitting ? "Adding..." : "Add Expense"}
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              buttonStyle={[styles.button, styles.submitButton]}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </Modal>
   )
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modal: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    width: "100%",
-    maxWidth: 500,
-    maxHeight: "90%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1f2937",
+    backgroundColor: "#f5f5f5",
   },
   content: {
+    flex: 1,
     padding: 20,
   },
-  field: {
+  inputContainer: {
     marginBottom: 20,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
+  pickerContainer: {
+    marginBottom: 20,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
+  pickerLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#86939e",
+    marginBottom: 10,
+  },
+  picker: {
+    backgroundColor: "#fff",
     borderRadius: 8,
-    padding: 12,
+  },
+  splitTypeContainer: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
     fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 15,
   },
-  memberSelector: {
+  switchContainer: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 15,
   },
-  memberOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
-    marginRight: 8,
+  membersContainer: {
+    marginBottom: 20,
   },
-  selectedMemberOption: {
-    backgroundColor: "#2563eb",
-    borderColor: "#2563eb",
-  },
-  memberOptionText: {
-    color: "#6b7280",
-    fontSize: 14,
-  },
-  selectedMemberOptionText: {
-    color: "white",
-  },
-  membersList: {
-    gap: 12,
-  },
-  memberItem: {
+  memberRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
+    marginBottom: 10,
   },
-  memberInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  checkboxContainer: {
+    flex: 1,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    padding: 0,
+    margin: 0,
   },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#dbeafe",
-    alignItems: "center",
-    justifyContent: "center",
+  customSplitInput: {
+    width: 100,
   },
-  avatarText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2563eb",
-  },
-  memberName: {
-    fontSize: 16,
-    color: "#1f2937",
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: "#d1d5db",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkedCheckbox: {
-    backgroundColor: "#2563eb",
-    borderColor: "#2563eb",
-  },
-  preview: {
-    backgroundColor: "#f9fafb",
-    padding: 16,
+  previewContainer: {
+    backgroundColor: "#fff",
+    padding: 15,
     borderRadius: 8,
     marginBottom: 20,
   },
-  previewTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 12,
-  },
-  previewItem: {
+  previewRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    paddingVertical: 5,
   },
-  previewName: {
-    fontSize: 14,
-    color: "#6b7280",
+  previewTotal: {
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    paddingTop: 10,
+    marginTop: 10,
   },
-  previewAmount: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1f2937",
+  previewTotalText: {
+    fontWeight: "bold",
+    textAlign: "right",
   },
-  buttons: {
+  buttonContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 20,
+    justifyContent: "space-between",
+    gap: 15,
+    marginBottom: 20,
   },
   button: {
     flex: 1,
-    padding: 14,
     borderRadius: 8,
-    alignItems: "center",
+    paddingVertical: 12,
   },
   cancelButton: {
     backgroundColor: "transparent",
+    borderColor: "#ccc",
     borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  submitButton: {
-    backgroundColor: "#2563eb",
   },
   cancelButtonText: {
-    color: "#6b7280",
-    fontWeight: "600",
+    color: "#666",
   },
-  submitButtonText: {
-    color: "white",
-    fontWeight: "600",
+  submitButton: {
+    backgroundColor: "#2196F3",
   },
 })

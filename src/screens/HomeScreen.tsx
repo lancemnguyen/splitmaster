@@ -1,32 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { Ionicons } from "@expo/vector-icons"
+import { View, Text, StyleSheet, SafeAreaView, ScrollView } from "react-native"
+import { Button, Card, Input } from "react-native-elements"
+import Icon from "react-native-vector-icons/MaterialIcons"
+import { useNavigation } from "@react-navigation/native"
+import type { StackNavigationProp } from "@react-navigation/stack"
+import Toast from "react-native-toast-message"
 import { createGroup, getGroupByCode } from "../lib/database"
-import { useToast } from "../hooks/useToast"
+import type { RootStackParamList } from "../navigation/AppNavigator"
 
-export default function HomeScreen({ navigation }) {
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">
+
+export default function HomeScreen() {
   const [groupName, setGroupName] = useState("")
   const [groupCode, setGroupCode] = useState("")
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
-  const { showToast } = useToast()
+  const navigation = useNavigation<HomeScreenNavigationProp>()
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
-      showToast("Please enter a group name", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please enter a group name",
+      })
       return
     }
 
@@ -34,16 +33,25 @@ export default function HomeScreen({ navigation }) {
     try {
       const group = await createGroup(groupName.trim())
       if (group) {
-        showToast(`Group created! Code: ${group.code}`, "success")
-        navigation.navigate("Group", {
-          groupId: group.id,
-          groupName: group.name,
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: `Group created! Code: ${group.code}`,
         })
+        navigation.navigate("Group", { groupId: group.id })
       } else {
-        showToast("Failed to create group", "error")
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to create group",
+        })
       }
     } catch (error) {
-      showToast("Something went wrong", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Something went wrong",
+      })
     } finally {
       setIsCreating(false)
     }
@@ -51,7 +59,11 @@ export default function HomeScreen({ navigation }) {
 
   const handleJoinGroup = async () => {
     if (!groupCode.trim()) {
-      showToast("Please enter a group code", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please enter a group code",
+      })
       return
     }
 
@@ -59,15 +71,20 @@ export default function HomeScreen({ navigation }) {
     try {
       const group = await getGroupByCode(groupCode.trim())
       if (group) {
-        navigation.navigate("Group", {
-          groupId: group.id,
-          groupName: group.name,
-        })
+        navigation.navigate("Group", { groupId: group.id })
       } else {
-        showToast("Group not found. Please check the code.", "error")
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Group not found. Please check the code.",
+        })
       }
     } catch (error) {
-      showToast("Something went wrong", "error")
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Something went wrong",
+      })
     } finally {
       setIsJoining(false)
     }
@@ -75,90 +92,75 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="people" size={40} color="white" />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Icon name="group" size={40} color="#fff" />
+          </View>
+          <Text style={styles.title}>WiseSplit</Text>
+          <Text style={styles.subtitle}>Split expenses with friends, simplified</Text>
+        </View>
+
+        <View style={styles.content}>
+          <Card containerStyle={styles.card}>
+            <View style={styles.cardHeader}>
+              <Icon name="add" size={20} color="#2196F3" />
+              <Text style={styles.cardTitle}>Create New Group</Text>
             </View>
-            <Text style={styles.title}>WiseSplit</Text>
-            <Text style={styles.subtitle}>Split expenses with friends, simplified</Text>
+            <Text style={styles.cardDescription}>Start a new expense group and invite friends</Text>
+            <Input
+              placeholder="e.g., Weekend Trip, Roommates"
+              value={groupName}
+              onChangeText={setGroupName}
+              containerStyle={styles.inputContainer}
+              inputStyle={styles.input}
+            />
+            <Button
+              title={isCreating ? "Creating..." : "Create Group"}
+              onPress={handleCreateGroup}
+              loading={isCreating}
+              buttonStyle={styles.primaryButton}
+              icon={<Icon name="arrow-forward" size={20} color="#fff" />}
+              iconRight
+            />
+          </Card>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
           </View>
 
-          <View style={styles.content}>
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="add-circle" size={24} color="#2563eb" />
-                <Text style={styles.cardTitle}>Create New Group</Text>
-              </View>
-              <Text style={styles.cardDescription}>Start a new expense group and invite friends</Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Weekend Trip, Roommates"
-                value={groupName}
-                onChangeText={setGroupName}
-                onSubmitEditing={handleCreateGroup}
-              />
-
-              <TouchableOpacity
-                style={[styles.button, styles.primaryButton]}
-                onPress={handleCreateGroup}
-                disabled={isCreating}
-              >
-                {isCreating ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <>
-                    <Text style={styles.buttonText}>Create Group</Text>
-                    <Ionicons name="arrow-forward" size={20} color="white" />
-                  </>
-                )}
-              </TouchableOpacity>
+          <Card containerStyle={styles.card}>
+            <View style={styles.cardHeader}>
+              <Icon name="group" size={20} color="#2196F3" />
+              <Text style={styles.cardTitle}>Join Existing Group</Text>
             </View>
+            <Text style={styles.cardDescription}>Enter the group code to join an existing group</Text>
+            <Input
+              placeholder="e.g., ABC123"
+              value={groupCode}
+              onChangeText={(text) => setGroupCode(text.toUpperCase())}
+              containerStyle={styles.inputContainer}
+              inputStyle={[styles.input, styles.upperCase]}
+              autoCapitalize="characters"
+            />
+            <Button
+              title={isJoining ? "Joining..." : "Join Group"}
+              onPress={handleJoinGroup}
+              loading={isJoining}
+              buttonStyle={styles.secondaryButton}
+              titleStyle={styles.secondaryButtonText}
+              icon={<Icon name="arrow-forward" size={20} color="#2196F3" />}
+              iconRight
+            />
+          </Card>
+        </View>
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="people" size={24} color="#2563eb" />
-                <Text style={styles.cardTitle}>Join Existing Group</Text>
-              </View>
-              <Text style={styles.cardDescription}>Enter the group code to join an existing group</Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., ABC123"
-                value={groupCode}
-                onChangeText={(text) => setGroupCode(text.toUpperCase())}
-                onSubmitEditing={handleJoinGroup}
-                autoCapitalize="characters"
-              />
-
-              <TouchableOpacity
-                style={[styles.button, styles.secondaryButton]}
-                onPress={handleJoinGroup}
-                disabled={isJoining}
-              >
-                {isJoining ? (
-                  <ActivityIndicator color="#2563eb" />
-                ) : (
-                  <>
-                    <Text style={[styles.buttonText, styles.secondaryButtonText]}>Join Group</Text>
-                    <Ionicons name="arrow-forward" size={20} color="#2563eb" />
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <Text style={styles.footer}>No sign-up required • Free to use • Share expenses easily</Text>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>No sign-up required • Free to use • Share expenses easily</Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -166,10 +168,7 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
-  },
-  keyboardView: {
-    flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   scrollContent: {
     flexGrow: 1,
@@ -177,91 +176,77 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginTop: 40,
-    marginBottom: 40,
+    marginBottom: 30,
   },
   iconContainer: {
-    backgroundColor: "#2563eb",
-    padding: 20,
+    backgroundColor: "#2196F3",
+    padding: 15,
     borderRadius: 50,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 8,
+    color: "#333",
+    marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: "#6b7280",
+    color: "#666",
     textAlign: "center",
   },
   content: {
     flex: 1,
   },
   card: {
-    backgroundColor: "white",
     borderRadius: 12,
-    padding: 24,
+    padding: 20,
     marginBottom: 20,
+    elevation: 3,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#1f2937",
-    marginLeft: 12,
+    color: "#333",
+    marginLeft: 10,
   },
   cardDescription: {
     fontSize: 14,
-    color: "#6b7280",
+    color: "#666",
+    marginBottom: 20,
+  },
+  inputContainer: {
     marginBottom: 20,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    padding: 12,
     fontSize: 16,
-    marginBottom: 16,
-    backgroundColor: "#f9fafb",
   },
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    borderRadius: 8,
-    gap: 8,
+  upperCase: {
+    textTransform: "uppercase",
   },
   primaryButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#2196F3",
+    borderRadius: 8,
+    paddingVertical: 12,
   },
   secondaryButton: {
     backgroundColor: "transparent",
+    borderColor: "#2196F3",
     borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
+    borderRadius: 8,
+    paddingVertical: 12,
   },
   secondaryButtonText: {
-    color: "#2563eb",
+    color: "#2196F3",
   },
   divider: {
     flexDirection: "row",
@@ -271,18 +256,21 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#ddd",
   },
   dividerText: {
-    marginHorizontal: 16,
+    marginHorizontal: 15,
     fontSize: 12,
-    color: "#9ca3af",
-    fontWeight: "500",
+    color: "#999",
+    textTransform: "uppercase",
   },
   footer: {
-    textAlign: "center",
+    alignItems: "center",
+    marginTop: 30,
+  },
+  footerText: {
     fontSize: 12,
-    color: "#9ca3af",
-    marginTop: 20,
+    color: "#999",
+    textAlign: "center",
   },
 })
