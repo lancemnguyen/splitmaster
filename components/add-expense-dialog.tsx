@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +32,13 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
   const [newMemberName, setNewMemberName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  useEffect(() => {
+    if (members.length > 0 && selectedMembers.length === 0) {
+      // Initially select all members when dialog opens
+      setSelectedMembers(members.map((member) => member.id))
+    }
+  }, [members, open])
+
   const categories = [
     "General",
     "Food",
@@ -49,7 +56,7 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
     setPaidBy("")
     setCategory("General")
     setSplitType("equal")
-    setSelectedMembers([])
+    setSelectedMembers(members.map((member) => member.id)) // Select all members initially
     setCustomSplits({})
     setNewMemberName("")
   }
@@ -179,6 +186,16 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
     }
   }
 
+  const handleSelectAll = () => {
+    setSelectedMembers(members.map((member) => member.id))
+    setCustomSplits({})
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedMembers([])
+    setCustomSplits({})
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -283,7 +300,17 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
 
           {/* Member Selection */}
           <div className="space-y-4">
-            <Label>Who's involved? *</Label>
+            <div className="flex items-center justify-between">
+              <Label>Who's involved? *</Label>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleSelectAll}>
+                  Select All
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={handleDeselectAll}>
+                  Deselect All
+                </Button>
+              </div>
+            </div>
             <div className="space-y-3">
               {members.map((member) => (
                 <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -332,6 +359,12 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
                     </div>
                   )
                 })}
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total</span>
+                    <span>${Number.parseFloat(amount).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}

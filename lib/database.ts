@@ -29,6 +29,17 @@ export async function getGroup(id: string): Promise<Group | null> {
   return data
 }
 
+export async function updateGroupName(groupId: string, name: string): Promise<boolean> {
+  const { error } = await supabase.from("groups").update({ name }).eq("id", groupId)
+
+  if (error) {
+    console.error("Error updating group name:", error)
+    return false
+  }
+
+  return true
+}
+
 // Member operations
 export async function addMember(groupId: string, name: string): Promise<Member | null> {
   const { data, error } = await supabase.from("members").insert({ group_id: groupId, name }).select().single()
@@ -46,6 +57,42 @@ export async function getMembers(groupId: string): Promise<Member[]> {
 
   if (error) return []
   return data || []
+}
+
+export async function updateMemberName(memberId: string, name: string): Promise<boolean> {
+  const { error } = await supabase.from("members").update({ name }).eq("id", memberId)
+
+  if (error) {
+    console.error("Error updating member name:", error)
+    return false
+  }
+
+  return true
+}
+
+export async function removeMember(memberId: string): Promise<boolean> {
+  // First check if member has any expenses or splits
+  const { data: expenses } = await supabase.from("expenses").select("id").eq("paid_by", memberId).limit(1)
+  const { data: splits } = await supabase.from("expense_splits").select("id").eq("member_id", memberId).limit(1)
+
+  if (expenses && expenses.length > 0) {
+    console.error("Cannot remove member: has expenses")
+    return false
+  }
+
+  if (splits && splits.length > 0) {
+    console.error("Cannot remove member: involved in expense splits")
+    return false
+  }
+
+  const { error } = await supabase.from("members").delete().eq("id", memberId)
+
+  if (error) {
+    console.error("Error removing member:", error)
+    return false
+  }
+
+  return true
 }
 
 // Expense operations

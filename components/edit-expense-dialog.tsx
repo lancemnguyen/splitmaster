@@ -31,6 +31,16 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
   const [customSplits, setCustomSplits] = useState<{ [memberId: string]: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const handleSelectAll = () => {
+    setSelectedMembers(members.map((member) => member.id))
+    setCustomSplits({})
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedMembers([])
+    setCustomSplits({})
+  }
+
   const categories = [
     "General",
     "Food",
@@ -284,7 +294,17 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
 
           {/* Member Selection */}
           <div className="space-y-4">
-            <Label>Who's involved? *</Label>
+            <div className="flex items-center justify-between">
+              <Label>Who's involved? *</Label>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleSelectAll}>
+                  Select All
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={handleDeselectAll}>
+                  Deselect All
+                </Button>
+              </div>
+            </div>
             <div className="space-y-3">
               {members.map((member) => (
                 <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -333,6 +353,12 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
                     </div>
                   )
                 })}
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total</span>
+                    <span>${Number.parseFloat(amount).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
