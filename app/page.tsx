@@ -97,7 +97,7 @@ export default function HomePage() {
               <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">WiseSplit</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">WeSplit</h1>
           <p className="text-gray-600 mt-2 text-sm sm:text-base">Split expenses with friends, simplified</p>
         </div>
 

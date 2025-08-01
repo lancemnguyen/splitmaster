@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "WiseSplit - Split Expenses with Friends",
+  title: "WeSplit - Split Expenses with Friends",
   description: "Simple and elegant expense splitting app. Create groups, add expenses, and track who owes what.",
     generator: 'v0.dev'
 }
