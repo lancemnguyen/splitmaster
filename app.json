@@ -1,9 +1,7 @@
 {
-  "name": "WiseSplit",
-  "displayName": "WiseSplit",
   "expo": {
     "name": "WiseSplit",
-    "slug": "wisesplit",
+    "slug": "wisesplit-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,17 +14,30 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.wisesplit"
+      "bundleIdentifier": "com.wisesplit.mobile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.yourcompany.wisesplit"
+      "package": "com.wisesplit.mobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "newArchEnabled": false
+          },
+          "android": {
+            "newArchEnabled": false
+          }
+        }
+      ]
+    ]
   }
 }

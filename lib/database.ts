@@ -73,6 +73,7 @@ export async function updateMemberName(memberId: string, name: string): Promise<
 export async function removeMember(memberId: string): Promise<boolean> {
   // First check if member has any expenses or splits
   const { data: expenses } = await supabase.from("expenses").select("id").eq("paid_by", memberId).limit(1)
+
   const { data: splits } = await supabase.from("expense_splits").select("id").eq("member_id", memberId).limit(1)
 
   if (expenses && expenses.length > 0) {
