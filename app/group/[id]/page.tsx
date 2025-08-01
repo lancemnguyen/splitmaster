@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Users, Receipt, Edit, Trash2, Copy, Minimize2 } from "lucide-react"
-import { getGroup, getMembers, getExpenses, getBalances, deleteExpense } from "@/lib/database"
+import { getGroup, getMembers, getExpenses, getBalances, deleteExpense, removeMember } from "@/lib/database"
 import type { Group, Member, Expense, Balance } from "@/lib/supabase"
 import { AddExpenseDialog } from "@/components/add-expense-dialog"
 import { AddMemberDialog } from "@/components/add-member-dialog"
 import { EditExpenseDialog } from "@/components/edit-expense-dialog"
 import { SimplifyDialog } from "@/components/simplify-dialog"
 import { toast } from "@/hooks/use-toast"
+import { EditGroupDialog } from "@/components/edit-group-dialog"
+import { EditMemberDialog } from "@/components/edit-member-dialog"
 
 export default function GroupPage() {
   const params = useParams()
@@ -27,6 +29,9 @@ export default function GroupPage() {
   const [showAddMember, setShowAddMember] = useState(false)
   const [showSimplify, setShowSimplify] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
+  const [totalExpenses, setTotalExpenses] = useState(0)
+  const [showEditGroup, setShowEditGroup] = useState(false)
+  const [editingMember, setEditingMember] = useState<Member | null>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -42,6 +47,10 @@ export default function GroupPage() {
       setMembers(membersData)
       setExpenses(expensesData)
       setBalances(balancesData)
+
+      // Calculate total expenses
+      const total = expensesData.reduce((sum, expense) => sum + expense.amount, 0)
+      setTotalExpenses(total)
     } catch (error) {
       toast({
         title: "Error",
@@ -101,6 +110,25 @@ export default function GroupPage() {
     return "text-gray-600"
   }
 
+  const handleRemoveMember = async (member: Member) => {
+    if (confirm(`Are you sure you want to remove ${member.name} from the group? This action cannot be undone.`)) {
+      const success = await removeMember(member.id)
+      if (success) {
+        toast({
+          title: "Success",
+          description: `${member.name} removed from the group`,
+        })
+        loadData()
+      } else {
+        toast({
+          title: "Error",
+          description: "Cannot remove member. They may have expenses or be involved in splits.",
+          variant: "destructive",
+        })
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -126,10 +154,15 @@ export default function GroupPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
+        <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{group.name}</h1>
+                <Button variant="ghost" size="sm" onClick={() => setShowEditGroup(true)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm text-gray-600">Group Code:</span>
                 <Badge variant="secondary" className="cursor-pointer hover:bg-gray-200" onClick={copyGroupCode}>
@@ -138,22 +171,24 @@ export default function GroupPage() {
                 </Badge>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setShowAddMember(true)} variant="outline">
-                <Users className="mr-2 h-4 w-4" />
-                Add Member
+            <div className="flex gap-2 flex-shrink-0">
+              <Button onClick={() => setShowAddMember(true)} variant="outline" size="sm" className="sm:size-default">
+                <Users className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Add Member</span>
+                <span className="sm:hidden">Member</span>
               </Button>
-              <Button onClick={() => setShowAddExpense(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Expense
+              <Button onClick={() => setShowAddExpense(true)} size="sm" className="sm:size-default">
+                <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Add Expense</span>
+                <span className="sm:hidden">Expense</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Balances */}
           <div className="lg:col-span-1">
             <Card>
@@ -184,16 +219,40 @@ export default function GroupPage() {
 
             <Card className="mt-4">
               <CardHeader>
+                <CardTitle>Group Total</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalExpenses)}</div>
+                  <p className="text-sm text-gray-500 mt-1">Total expenses</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-4">
+              <CardHeader>
                 <CardTitle>Members ({members.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {members.map((member) => (
-                    <div key={member.id} className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-600">{member.name.charAt(0).toUpperCase()}</span>
+                    <div key={member.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-blue-600">
+                            {member.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <span>{member.name}</span>
                       </div>
-                      <span>{member.name}</span>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => setEditingMember(member)}>
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleRemoveMember(member)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -205,22 +264,25 @@ export default function GroupPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Receipt className="h-5 w-5" />
-                  Recent Expenses ({expenses.length})
+                  <span className="hidden sm:inline">Recent Expenses ({expenses.length})</span>
+                  <span className="sm:hidden">Expenses ({expenses.length})</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {expenses.map((expense) => (
-                    <div key={expense.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold">{expense.description}</h3>
-                            <Badge variant="outline">{expense.category}</Badge>
+                    <div key={expense.id} className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                            <h3 className="font-semibold text-sm sm:text-base truncate">{expense.description}</h3>
+                            <Badge variant="outline" className="self-start text-xs">
+                              {expense.category}
+                            </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-xs sm:text-sm text-gray-600 mb-2">
                             Paid by {expense.paid_by_member?.name} • {formatCurrency(expense.amount)}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -228,20 +290,20 @@ export default function GroupPage() {
                             {new Date(expense.created_at).toLocaleTimeString()}
                           </p>
                         </div>
-                        <div className="flex gap-1 ml-4">
+                        <div className="flex gap-1 flex-shrink-0">
                           <Button variant="ghost" size="sm" onClick={() => setEditingExpense(expense)}>
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleDeleteExpense(expense.id)}>
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </div>
                     </div>
                   ))}
                   {expenses.length === 0 && (
-                    <div className="text-center py-8">
-                      <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <div className="text-center py-6 sm:py-8">
+                      <Receipt className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-500">No expenses yet</p>
                       <p className="text-sm text-gray-400">Add your first expense to get started</p>
                     </div>
@@ -273,6 +335,15 @@ export default function GroupPage() {
       />
 
       <SimplifyDialog open={showSimplify} onOpenChange={setShowSimplify} balances={balances} />
+
+      <EditGroupDialog open={showEditGroup} onOpenChange={setShowEditGroup} group={group} onSuccess={loadData} />
+
+      <EditMemberDialog
+        open={!!editingMember}
+        onOpenChange={(open) => !open && setEditingMember(null)}
+        member={editingMember}
+        onSuccess={loadData}
+      />
     </div>
   )
 }
