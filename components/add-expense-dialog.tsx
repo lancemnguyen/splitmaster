@@ -29,7 +29,6 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
   const [splitType, setSplitType] = useState<"equal" | "percentage" | "amount">("equal")
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const [customSplits, setCustomSplits] = useState<{ [memberId: string]: string }>({})
-  const [newMemberName, setNewMemberName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -58,27 +57,6 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
     setSplitType("equal")
     setSelectedMembers(members.map((member) => member.id)) // Select all members initially
     setCustomSplits({})
-    setNewMemberName("")
-  }
-
-  const handleAddNewMember = async () => {
-    if (!newMemberName.trim()) return
-
-    const newMember = await addMember(groupId, newMemberName.trim())
-    if (newMember) {
-      setNewMemberName("")
-      onSuccess() // Refresh members list
-      toast({
-        title: "Success",
-        description: `${newMember.name} added to the group`,
-      })
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to add member",
-        variant: "destructive",
-      })
-    }
   }
 
   const calculateSplits = () => {
@@ -260,24 +238,6 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
               </Select>
             </div>
           </div>
-
-          {/* Add New Member */}
-          <div className="space-y-2">
-            <Label>Add New Member</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter name"
-                value={newMemberName}
-                onChange={(e) => setNewMemberName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddNewMember()}
-              />
-              <Button onClick={handleAddNewMember} variant="outline">
-                Add
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
 
           {/* Split Configuration */}
           <div className="space-y-4">

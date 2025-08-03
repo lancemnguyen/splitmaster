@@ -271,8 +271,6 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
             </div>
           </div>
 
-          <Separator />
-
           {/* Split Configuration */}
           <div className="space-y-4">
             <Label>How to split?</Label>
