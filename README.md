@@ -16,9 +16,9 @@ Based on the project dependencies, the stack likely includes:
 *   **Framework:** [Next.js](https://nextjs.org/)
 *   **Language:** [TypeScript](https://www.typescriptlang.org/)
 *   **UI:** [React](https://reactjs.org/)
-*   **Styling:** _(e.g., Tailwind CSS, CSS Modules, etc.)_
 *   **Backend:** Node.js (via Next.js API routes)
 *   **Database:** Supabase
+*   **Styling:** Tailwind CSS
 
 ## 🚀 Getting Started
 
