@@ -11,8 +11,6 @@ A modern, intuitive application for splitting bills and expenses with friends an
 
 ## 🛠️ Tech Stack
 
-Based on the project dependencies, the stack likely includes:
-
 *   **Framework:** [Next.js](https://nextjs.org/)
 *   **Language:** [TypeScript](https://www.typescriptlang.org/)
 *   **UI:** [React](https://reactjs.org/)
@@ -64,7 +62,3 @@ Open http://localhost:3000 in your browser to see the application.
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the issues page if you want to contribute.
-
-<!-- ## 📄 License
-
-This project is distributed under the MIT License. See `LICENSE.md` for more information. -->
