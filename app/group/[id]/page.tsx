@@ -175,10 +175,12 @@ export default function GroupPage() {
               <Button onClick={() => setShowAddMember(true)} variant="outline" size="sm" className="sm:size-default">
                 <Users className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Add Member</span>
+                <span className="sm:hidden">Add Member</span>
               </Button>
               <Button onClick={() => setShowAddExpense(true)} size="sm" className="sm:size-default">
                 <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Add Expense</span>
+                <span className="sm:hidden">Add Expense</span>
               </Button>
             </div>
           </div>
