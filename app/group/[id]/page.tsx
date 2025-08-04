@@ -175,12 +175,10 @@ export default function GroupPage() {
               <Button onClick={() => setShowAddMember(true)} variant="outline" size="sm" className="sm:size-default">
                 <Users className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Add Member</span>
-                <span className="sm:hidden">Member</span>
               </Button>
               <Button onClick={() => setShowAddExpense(true)} size="sm" className="sm:size-default">
                 <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Add Expense</span>
-                <span className="sm:hidden">Expense</span>
               </Button>
             </div>
           </div>
@@ -195,7 +193,6 @@ export default function GroupPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>Balances</CardTitle>
-                  <CardDescription>Who owes what</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setShowSimplify(true)}>
                   <Minimize2 className="mr-2 h-4 w-4" />

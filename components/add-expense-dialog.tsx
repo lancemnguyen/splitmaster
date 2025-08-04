@@ -174,6 +174,9 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
     setCustomSplits({})
   }
 
+  const currentSplits = calculateSplits()
+  const currentTotal = currentSplits.reduce((sum, split) => sum + split.amount, 0)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -197,8 +200,8 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
               <Label htmlFor="amount">Amount *</Label>
               <Input
                 id="amount"
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -285,8 +288,8 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
                   {selectedMembers.includes(member.id) && splitType !== "equal" && (
                     <div className="flex items-center space-x-2">
                       <Input
-                        type="number"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         placeholder={splitType === "percentage" ? "0%" : "0.00"}
                         value={customSplits[member.id] || ""}
                         onChange={(e) =>
@@ -310,7 +313,7 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
             <div className="bg-gray-50 p-4 rounded-lg">
               <Label className="text-sm font-medium">Split Preview:</Label>
               <div className="mt-2 space-y-1">
-                {calculateSplits().map((split) => {
+                {currentSplits.map((split) => {
                   const member = members.find((m) => m.id === split.memberId)
                   return (
                     <div key={split.memberId} className="flex justify-between text-sm">
@@ -322,7 +325,7 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between text-sm font-semibold">
                     <span>Total</span>
-                    <span>${Number.parseFloat(amount).toFixed(2)}</span>
+                    <span>${currentTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

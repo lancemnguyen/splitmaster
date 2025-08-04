@@ -113,17 +113,14 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
                 {transactions.map((transaction, index) => (
                   <Card key={index}>
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-sm">
-                            <div className="font-medium">{transaction.from}</div>
-                            <div className="text-gray-500">pays</div>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium text-sm">{transaction.from}</span>
+                          <div className="flex flex-col items-center">
+                            <ArrowRight className="h-4 w-12 text-gray-400" />
+                            <span className="text-xs text-gray-500 -mt-1">pays</span>
                           </div>
-                          <ArrowRight className="h-4 w-4 text-gray-400" />
-                          <div className="text-sm">
-                            <div className="font-medium">{transaction.to}</div>
-                            <div className="text-gray-500">receives</div>
-                          </div>
+                          <span className="font-medium text-sm">{transaction.to}</span>
                         </div>
                         <div className="text-lg font-semibold text-green-600">{formatCurrency(transaction.amount)}</div>
                       </div>
