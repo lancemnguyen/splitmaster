@@ -290,7 +290,7 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSucce
                       <Input
                         type="text"
                         inputMode="decimal"
-                        placeholder={splitType === "percentage" ? "0%" : "0.00"}
+                        placeholder={splitType === "percentage" ? "0" : "0.00"}
                         value={customSplits[member.id] || ""}
                         onChange={(e) =>
                           setCustomSplits({

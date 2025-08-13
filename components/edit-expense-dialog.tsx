@@ -322,7 +322,7 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
                       <Input
                         type="text"
                         inputMode="decimal"
-                        placeholder={splitType === "percentage" ? "0%" : "0.00"}
+                        placeholder={splitType === "percentage" ? "0" : "0.00"}
                         value={customSplits[member.id] || ""}
                         onChange={(e) =>
                           setCustomSplits({
