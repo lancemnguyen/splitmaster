@@ -32,30 +32,30 @@ Make sure you have Node.js and a package manager like npm or Yarn installed on y
 ### Installation
 
 1.  **Clone the repository**
-    ```sh
+    \`\`\`sh
     git clone https://github.com/your_username/wesplit.git
     cd wesplit
-    ```
+    \`\`\`
 
 2.  **Install dependencies**
-    ```sh
+    \`\`\`sh
     npm install
-    ```
+    \`\`\`
 
 3.  **Set up environment variables**
     Create a `.env.local` file in the root of the project and add the necessary environment variables. You can start by copying the example file if one exists.
-    ```sh
+    \`\`\`sh
     cp .env.example .env.local
-    ```
+    \`\`\`
     Then, fill in the required values in `.env.local`.
 
 ### Running the Application
 
 Start the development server:
 
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 Open http://localhost:3000 in your browser to see the application.
 
