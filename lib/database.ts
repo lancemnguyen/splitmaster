@@ -103,6 +103,8 @@ export async function addExpense(
   paidBy: string,
   splits: { memberId: string; amount: number }[],
   category = "General",
+  splitMethod = "equal",
+  splitConfig = {},
 ): Promise<Expense | null> {
   const { data: expense, error: expenseError } = await supabase
     .from("expenses")
@@ -112,6 +114,8 @@ export async function addExpense(
       amount,
       paid_by: paidBy,
       category,
+      split_method: splitMethod,
+      split_config: splitConfig,
     })
     .select()
     .single()
@@ -172,6 +176,8 @@ export async function updateExpense(
   paidBy: string,
   splits: { memberId: string; amount: number }[],
   category = "General",
+  splitMethod = "equal",
+  splitConfig = {},
 ): Promise<boolean> {
   // Update expense
   const { error: expenseError } = await supabase
@@ -182,6 +188,8 @@ export async function updateExpense(
       paid_by: paidBy,
       category,
       updated_at: new Date().toISOString(),
+      split_method: splitMethod,
+      split_config: splitConfig,
     })
     .eq("id", expenseId)
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Users, Receipt, Edit, Trash2, Copy, Minimize2 } from "lucide-react"
 import { getGroup, getMembers, getExpenses, getBalances, deleteExpense, removeMember } from "@/lib/database"
@@ -15,6 +15,7 @@ import { SimplifyDialog } from "@/components/simplify"
 import { toast } from "@/hooks/use-toast"
 import { EditGroupDialog } from "@/components/edit-group"
 import { EditMemberDialog } from "@/components/edit-member"
+import { ExpenseSplitInfo } from "@/components/expense-split-info"
 
 export default function GroupPage() {
   const params = useParams()
@@ -144,7 +145,7 @@ export default function GroupPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Group not found</h1>
+          <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">Group not found</h1>
           <p className="text-gray-600 mt-2">The group you're looking for doesn't exist.</p>
         </div>
       </div>
@@ -288,6 +289,7 @@ export default function GroupPage() {
                             {new Date(expense.created_at).toLocaleDateString()} at{" "}
                             {new Date(expense.created_at).toLocaleTimeString()}
                           </p>
+                          <ExpenseSplitInfo expense={expense} members={members} />
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
                           <Button variant="ghost" size="sm" onClick={() => setEditingExpense(expense)}>

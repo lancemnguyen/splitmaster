@@ -17,7 +17,16 @@ interface AddExpenseDialogProps {
 export function AddExpenseDialog({ open, onOpenChange, groupId, members, onSuccess }: AddExpenseDialogProps) {
   const { handleSubmit, isSubmitting } = useFormSubmission(
     async (data: any) => {
-      return await addExpense(groupId, data.description, data.amount, data.paidBy, data.splits, data.category)
+      return await addExpense(
+        groupId, 
+        data.description, 
+        data.amount, 
+        data.paidBy, 
+        data.splits, 
+        data.category,
+        data.splitMethod,
+        data.splitConfig,
+      )
     },
     {
       successMessage: "Expense added successfully",
