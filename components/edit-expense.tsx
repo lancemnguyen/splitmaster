@@ -2,10 +2,10 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { updateExpense, getExpenseSplits } from "@/lib/database"
-import type { Member, Expense } from "@/lib/supabase"
+import type { Member, Expense, ExpenseSplit } from "@/lib/supabase"
 import { ExpenseForm } from "./expense-form"
 import { useFormSubmission } from "@/hooks/use-form-submission"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 interface EditExpenseDialogProps {
   open: boolean
@@ -16,6 +16,9 @@ interface EditExpenseDialogProps {
 }
 
 export function EditExpenseDialog({ open, onOpenChange, expense, members, onSuccess }: EditExpenseDialogProps) {
+  const [expenseSplits, setExpenseSplits] = useState<ExpenseSplit[]>([])
+  const [loadingSplits, setLoadingSplits] = useState(false)
+
   const { handleSubmit, isSubmitting } = useFormSubmission(
     async (data: any) => {
       if (!expense) return null
@@ -26,6 +29,8 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
         data.paidBy,
         data.splits,
         data.category,
+        data.splitMethod,
+        data.splitConfig,
       )
     },
     {
@@ -38,13 +43,13 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
     },
   )
 
-  // This useEffect is still needed to load initial expense data into the form
-  // as the form itself doesn't handle async data loading.
   useEffect(() => {
     if (expense && open) {
-      // This part needs to be handled by the parent or passed down to ExpenseForm
-      // if ExpenseForm is to be truly self-contained for editing.
-      // For now, assuming ExpenseForm will receive `expense` prop and handle its own state init.
+      setLoadingSplits(true)
+      getExpenseSplits(expense.id).then((splits) => {
+        setExpenseSplits(splits)
+        setLoadingSplits(false)
+      })
     }
   }, [expense, open])
 
@@ -56,13 +61,20 @@ export function EditExpenseDialog({ open, onOpenChange, expense, members, onSucc
         <DialogHeader>
           <DialogTitle>Edit Expense</DialogTitle>
         </DialogHeader>
-        <ExpenseForm
-          expense={expense}
-          members={members}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          onOpenChange={onOpenChange}
-        />
+        {loadingSplits ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <ExpenseForm
+            expense={expense}
+            expenseSplits={expenseSplits}
+            members={members}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            onOpenChange={onOpenChange}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

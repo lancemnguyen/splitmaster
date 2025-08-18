@@ -7,17 +7,25 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { Member, Expense } from "@/lib/supabase"
+import type { Member, Expense, ExpenseSplit } from "@/lib/supabase"
 
 interface ExpenseFormProps {
   expense?: Expense | null
+  expenseSplits?: ExpenseSplit[]
   members: Member[]
   onSubmit: (data: any) => Promise<void>
   isSubmitting: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function ExpenseForm({ expense, members, onSubmit, isSubmitting, onOpenChange }: ExpenseFormProps) {
+export function ExpenseForm({
+  expense,
+  expenseSplits,
+  members,
+  onSubmit,
+  isSubmitting,
+  onOpenChange,
+}: ExpenseFormProps) {
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
   const [paidBy, setPaidBy] = useState("")
@@ -32,12 +40,26 @@ export function ExpenseForm({ expense, members, onSubmit, isSubmitting, onOpenCh
       setAmount(expense.amount.toString())
       setPaidBy(expense.paid_by)
       setCategory(expense.category)
-      // Note: Splits are not handled here as they require async loading in the parent.
+
+      if (expense.split_method) {
+        setSplitType(expense.split_method as "equal" | "percentage" | "amount")
+      }
+
+      // Load existing splits data
+      if (expenseSplits && expenseSplits.length > 0) {
+        const memberIds = expenseSplits.map((split) => split.member_id)
+        setSelectedMembers(memberIds)
+
+        // If not equal split, load the custom split values
+        if (expense.split_method !== "equal" && expense.split_config) {
+          setCustomSplits(expense.split_config as { [memberId: string]: string })
+        }
+      }
     } else {
       // Default for new expense
       setSelectedMembers(members.map((member) => member.id))
     }
-  }, [expense, members])
+  }, [expense, expenseSplits, members])
 
   const categories = [
     "General",
@@ -106,12 +128,15 @@ export function ExpenseForm({ expense, members, onSubmit, isSubmitting, onOpenCh
     }
 
     const splits = calculateSplits()
+
     onSubmit({
       description: description.trim(),
       amount: Number.parseFloat(amount),
       paidBy,
       splits,
       category,
+      splitMethod: splitType,
+      splitConfig: splitType !== "equal" ? customSplits : {},
     })
   }
 
@@ -293,7 +318,7 @@ export function ExpenseForm({ expense, members, onSubmit, isSubmitting, onOpenCh
           Cancel
         </Button>
         <Button onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? (expense ? "Updating..." : "Adding...") : (expense ? "Update Expense" : "Add Expense")}
+          {isSubmitting ? (expense ? "Updating..." : "Adding...") : expense ? "Update Expense" : "Add Expense"}
         </Button>
       </div>
     </div>
