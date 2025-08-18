@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp, Users } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { getExpenseSplits } from "@/lib/database"
 import type { Expense, ExpenseSplit, Member } from "@/lib/supabase"
 
@@ -59,7 +59,6 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
     <div className="mt-2">
       <div className="flex items-center gap-2 mb-2">
         <Badge variant="secondary" className="text-xs">
-          <Users className="h-3 w-3 mr-1" />
           {getSplitMethodDisplay()}
         </Badge>
         <Button variant="ghost" size="sm" onClick={() => setShowDetails(!showDetails)} className="h-6 px-2 text-xs">
