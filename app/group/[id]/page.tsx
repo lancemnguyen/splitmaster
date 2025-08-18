@@ -285,10 +285,10 @@ export default function GroupPage() {
                           <p className="text-xs sm:text-sm text-gray-600 mb-2">
                             Paid by {expense.paid_by_member?.name} • {formatCurrency(expense.amount)}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          {/* <p className="text-xs text-gray-500">
                             {new Date(expense.created_at).toLocaleDateString()} at{" "}
                             {new Date(expense.created_at).toLocaleTimeString()}
-                          </p>
+                          </p> */}
                           <ExpenseSplitInfo expense={expense} members={members} />
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
