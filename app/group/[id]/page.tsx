@@ -170,6 +170,9 @@ export default function GroupPage() {
                   {group.code}
                   <Copy className="ml-1 h-3 w-3" />
                 </Badge>
+                <p className="text-xs text-red-500">
+                  (save code for later!)
+                </p>
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
@@ -178,7 +181,7 @@ export default function GroupPage() {
                 <span className="hidden sm:inline">Add Member</span>
                 <span className="sm:hidden">Add Member</span>
               </Button>
-              <Button onClick={() => setShowAddExpense(true)} size="sm" className="sm:size-default">
+              <Button onClick={() => setShowAddExpense(true)} size="sm" className="sm:size-default bg-blue-600 hover:bg-blue-700">
                 <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Add Expense</span>
                 <span className="sm:hidden">Add Expense</span>
@@ -218,11 +221,11 @@ export default function GroupPage() {
             </Card>
 
             <Card className="mt-4">
-              <CardHeader>
+              {/* <CardHeader>
                 <CardTitle>Group Total</CardTitle>
-              </CardHeader>
+              </CardHeader> */}
               <CardContent>
-                <div className="text-center">
+                <div className="text-center mt-6">
                   <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalExpenses)}</div>
                   <p className="text-sm text-gray-500 mt-1">Total expenses</p>
                 </div>
@@ -249,8 +252,8 @@ export default function GroupPage() {
                         <Button variant="ghost" size="sm" onClick={() => setEditingMember(member)}>
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleRemoveMember(member)}>
-                          <Trash2 className="h-3 w-3" />
+                        <Button variant="ghost" size="sm" onClick={() => handleRemoveMember(member)} className="text-red-600 hover:bg-red-50">
+                          <Trash2 className="h-3 w-3 text-red-600" />
                         </Button>
                       </div>
                     </div>
@@ -265,9 +268,8 @@ export default function GroupPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <Receipt className="h-5 w-5" />
-                  <span className="hidden sm:inline">Recent Expenses ({expenses.length})</span>
-                  <span className="sm:hidden">Expenses ({expenses.length})</span>
+                  <Receipt className="h-5 w-5 text-green-800" />
+                  <span>Items ({expenses.length})</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -292,11 +294,11 @@ export default function GroupPage() {
                           <ExpenseSplitInfo expense={expense} members={members} />
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
-                          <Button variant="ghost" size="sm" onClick={() => setEditingExpense(expense)}>
+                          <Button variant="ghost" size="sm" onClick={() => setEditingExpense(expense)} className="hover:bg-gray-100">
                             <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteExpense(expense.id)}>
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteExpense(expense.id)} className="text-red-600 hover:bg-red-50">
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                           </Button>
                         </div>
                       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -92,23 +93,32 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6 sm:space-y-8">
         <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-            </div>
+          <div className="flex justify-center mb-2">
+            <Image
+              src="/me-first-dollar.png"
+              alt="WeSplit Logo"
+              width={128}
+              height={128}
+            />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">WeSplit</h1>
-          <p className="text-gray-600 mt-2 text-sm">Share expenses easily • No sign-up required • Free to use</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-green-800">WeSplit</h1>
+          <p className="text-gray-600 mt-2 text-sm">
+            Share expenses easily
+            <span className="font-bold text-green-800"> • </span>
+            No sign-up required
+            <span className="font-bold text-green-800"> • </span>
+            Free to use
+          </p>
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4 sm:space-y-4">
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                 Create New Group
               </CardTitle>
-              <CardDescription className="text-sm">Start a new expense group and invite friends</CardDescription>
+              <CardDescription className="text-sm">Start a new expense group and invite others</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -117,14 +127,18 @@ export default function HomePage() {
                 </Label>
                 <Input
                   id="groupName"
-                  placeholder="e.g., Weekend Trip, Roommates"
+                  placeholder="e.g., Weekend Trip, Dinner"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateGroup()}
                   className="text-sm sm:text-base"
                 />
               </div>
-              <Button onClick={handleCreateGroup} disabled={isCreating} className="w-full text-sm sm:text-base">
+              <Button
+                onClick={handleCreateGroup}
+                disabled={isCreating}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
+              >
                 {isCreating ? "Creating..." : "Create Group"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -155,7 +169,7 @@ export default function HomePage() {
                 </Label>
                 <Input
                   id="groupCode"
-                  placeholder="e.g., ABC123"
+                  placeholder="ABC123"
                   value={groupCode}
                   onChange={(e) => setGroupCode(e.target.value.toUpperCase())}
                   onKeyDown={(e) => e.key === "Enter" && handleJoinGroup()}

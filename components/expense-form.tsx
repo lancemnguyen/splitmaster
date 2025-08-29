@@ -169,7 +169,9 @@ export function ExpenseForm({
       {/* Basic Info */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="description">Description *</Label>
+          <Label htmlFor="description">
+            Description <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="description"
             placeholder="e.g., Dinner at restaurant"
@@ -178,7 +180,9 @@ export function ExpenseForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount *</Label>
+          <Label htmlFor="amount">
+            Amount <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="amount"
             type="text"
@@ -207,7 +211,9 @@ export function ExpenseForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="paidBy">Paid by *</Label>
+          <Label htmlFor="paidBy">
+            Paid by <span className="text-red-500">*</span>
+          </Label>
           <Select value={paidBy} onValueChange={setPaidBy}>
             <SelectTrigger>
               <SelectValue placeholder="Select who paid" />
@@ -245,7 +251,9 @@ export function ExpenseForm({
       {/* Member Selection */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label>Who's involved? *</Label>
+          <Label>
+            Who's involved? <span className="text-red-500">*</span>
+          </Label>
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={handleSelectAll}>
               Select All
@@ -317,7 +325,7 @@ export function ExpenseForm({
         <Button variant="outline" onClick={() => onOpenChange(false)}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting}>
+        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
           {isSubmitting ? (expense ? "Updating..." : "Adding...") : expense ? "Update Expense" : "Add Expense"}
         </Button>
       </div>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -27,8 +28,8 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
     }).format(amount)
   }
 
-  // Calculate simplified transactions using greedy algorithm
-  const calculateSimplifiedTransactions = (): { transactions: Transaction[]; savings: number } => {
+  const { transactions, savings } = useMemo(() => {
+    // Calculate simplified transactions using greedy algorithm
     // Create working copies of balances
     const creditors = balances
       .filter((b) => b.balance > 0.01) // Only include significant positive balances
@@ -73,13 +74,11 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
     // Calculate savings (naive approach would be each debtor pays each creditor they owe)
     const totalDebtors = balances.filter((b) => b.balance < -0.01).length
     const totalCreditors = balances.filter((b) => b.balance > 0.01).length
-    const naiveTransactions = Math.min(totalDebtors * totalCreditors, totalDebtors + totalCreditors - 1)
+    const naiveTransactions = totalDebtors * totalCreditors
     const savings = Math.max(0, naiveTransactions - transactions.length)
 
     return { transactions, savings }
-  }
-
-  const { transactions, savings } = calculateSimplifiedTransactions()
+  }, [balances])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -87,7 +86,7 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
-            Simplify Transactions
+            Simplified Transactions
           </DialogTitle>
         </DialogHeader>
 
@@ -96,7 +95,7 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
             <>
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-900">Optimization Result</span>
+                  <span className="text-sm font-medium text-blue-900">Optimized Result</span>
                   {savings > 0 && (
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
                       Saved {savings} transaction{savings !== 1 ? "s" : ""}
@@ -109,7 +108,7 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
               </div>
 
               <div className="space-y-3">
-                <h3 className="font-medium text-gray-900">Simplified Transactions:</h3>
+                {/* <h3 className="font-medium text-gray-900">Simplified Transactions:</h3> */}
                 {transactions.map((transaction, index) => (
                   <Card key={index}>
                     <CardContent className="p-4">
@@ -147,7 +146,7 @@ export function SimplifyDialog({ open, onOpenChange, balances }: SimplifyDialogP
           )}
 
           <div className="flex justify-end pt-4 border-t">
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
+            <Button onClick={() => onOpenChange(false)} className="bg-blue-600 hover:bg-blue-700">Close</Button>
           </div>
         </div>
       </DialogContent>

@@ -86,7 +86,7 @@ export function EditGroupDialog({ open, onOpenChange, group, onSuccess }: EditGr
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
+            <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
               {isSubmitting ? "Updating..." : "Update"}
             </Button>
           </div>
