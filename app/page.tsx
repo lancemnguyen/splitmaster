@@ -98,7 +98,7 @@ export default function HomePage() {
             </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">WeSplit</h1>
-          <p className="text-gray-600 mt-2 text-sm sm:text-base">Split expenses with friends, simplified</p>
+          <p className="text-gray-600 mt-2 text-sm">Share expenses easily • No sign-up required • Free to use</p>
         </div>
 
         <div className="space-y-4 sm:space-y-6">
@@ -176,7 +176,7 @@ export default function HomePage() {
         </div>
 
         <div className="text-center text-xs sm:text-sm text-gray-500">
-          <p>No sign-up required • Free to use • Share expenses easily</p>
+          <p>© {new Date().getFullYear()} Lance Nguyen</p>
         </div>
       </div>
     </div>
