@@ -1,23 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Users, Plus, ArrowRight } from "lucide-react"
-import { createGroup, getGroupByCode } from "@/lib/database"
-import { toast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Users, Plus, ArrowRight } from "lucide-react";
+import { createGroup, getGroupByCode } from "@/lib/database";
+import { toast } from "@/hooks/use-toast";
 
 export default function HomePage() {
-  const [groupName, setGroupName] = useState("")
-  const [groupCode, setGroupCode] = useState("")
-  const [isCreating, setIsCreating] = useState(false)
-  const [isJoining, setIsJoining] = useState(false)
-  const router = useRouter()
+  const [groupName, setGroupName] = useState("");
+  const [groupCode, setGroupCode] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
+  const router = useRouter();
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
@@ -25,36 +31,36 @@ export default function HomePage() {
         title: "Error",
         description: "Please enter a group name",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      const group = await createGroup(groupName.trim())
+      const group = await createGroup(groupName.trim());
       if (group) {
         toast({
           title: "Success",
           description: `Group created! Code: ${group.code}`,
-        })
-        router.push(`/group/${group.id}`)
+        });
+        router.push(`/group/${group.id}`);
       } else {
         toast({
           title: "Error",
           description: "Failed to create group",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Something went wrong",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleJoinGroup = async () => {
     if (!groupCode.trim()) {
@@ -62,32 +68,32 @@ export default function HomePage() {
         title: "Error",
         description: "Please enter a group code",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsJoining(true)
+    setIsJoining(true);
     try {
-      const group = await getGroupByCode(groupCode.trim())
+      const group = await getGroupByCode(groupCode.trim());
       if (group) {
-        router.push(`/group/${group.id}`)
+        router.push(`/group/${group.id}`);
       } else {
         toast({
           title: "Error",
           description: "Group not found. Please check the code.",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Something went wrong",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsJoining(false)
+      setIsJoining(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -101,7 +107,9 @@ export default function HomePage() {
               height={128}
             />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-green-800">WeSplit</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-green-800">
+            WeSplit
+          </h1>
           <p className="text-gray-600 mt-2 text-sm">
             Share expenses easily
             <span className="font-bold text-green-800"> • </span>
@@ -118,7 +126,9 @@ export default function HomePage() {
                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                 Create New Group
               </CardTitle>
-              <CardDescription className="text-sm">Start a new expense group and invite others</CardDescription>
+              <CardDescription className="text-sm">
+                Start a new expense group and invite others
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -150,7 +160,9 @@ export default function HomePage() {
               <Separator className="w-full" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-gradient-to-br from-blue-50 to-indigo-100 px-2 text-muted-foreground">Or</span>
+              <span className="bg-gradient-to-br from-blue-50 to-indigo-100 px-2 text-muted-foreground">
+                Or
+              </span>
             </div>
           </div>
 
@@ -160,7 +172,9 @@ export default function HomePage() {
                 <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                 Join Existing Group
               </CardTitle>
-              <CardDescription className="text-sm">Enter the group code to join an existing group</CardDescription>
+              <CardDescription className="text-sm">
+                Enter the group code to join an existing group
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -194,5 +208,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

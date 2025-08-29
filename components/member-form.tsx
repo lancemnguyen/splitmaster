@@ -1,28 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface MemberFormProps {
-  initialName?: string
-  onSubmit: (name: string) => Promise<void>
-  isSubmitting: boolean
-  onCancel: () => void
-  isEdit: boolean
+  initialName?: string;
+  onSubmit: (name: string) => Promise<void>;
+  isSubmitting: boolean;
+  onCancel: () => void;
+  isEdit: boolean;
 }
 
-export function MemberForm({ initialName = "", onSubmit, isSubmitting, onCancel, isEdit }: MemberFormProps) {
-  const [name, setName] = useState(initialName)
+export function MemberForm({
+  initialName = "",
+  onSubmit,
+  isSubmitting,
+  onCancel,
+  isEdit,
+}: MemberFormProps) {
+  const [name, setName] = useState(initialName);
 
   useEffect(() => {
-    setName(initialName)
-  }, [initialName])
+    setName(initialName);
+  }, [initialName]);
 
   const handleSubmit = () => {
-    onSubmit(name)
-  }
+    onSubmit(name);
+  };
 
   return (
     <div className="space-y-4">
@@ -41,10 +47,20 @@ export function MemberForm({ initialName = "", onSubmit, isSubmitting, onCancel,
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
-          {isSubmitting ? (isEdit ? "Updating..." : "Adding...") : (isEdit ? "Update" : "Add Member")}
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          {isSubmitting
+            ? isEdit
+              ? "Updating..."
+              : "Adding..."
+            : isEdit
+            ? "Update"
+            : "Add Member"}
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -1,24 +1,34 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { updateGroupName } from "@/lib/database"
-import type { Group } from "@/lib/supabase"
-import { toast } from "@/hooks/use-toast"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { updateGroupName } from "@/lib/database";
+import type { Group } from "@/lib/supabase";
+import { toast } from "@/hooks/use-toast";
 
 interface EditGroupDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  group: Group
-  onSuccess: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  group: Group;
+  onSuccess: () => void;
 }
 
-export function EditGroupDialog({ open, onOpenChange, group, onSuccess }: EditGroupDialogProps) {
-  const [name, setName] = useState(group.name)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export function EditGroupDialog({
+  open,
+  onOpenChange,
+  group,
+  onSuccess,
+}: EditGroupDialogProps) {
+  const [name, setName] = useState(group.name);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -26,42 +36,42 @@ export function EditGroupDialog({ open, onOpenChange, group, onSuccess }: EditGr
         title: "Error",
         description: "Please enter a group name",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (name.trim() === group.name) {
-      onOpenChange(false)
-      return
+      onOpenChange(false);
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const success = await updateGroupName(group.id, name.trim())
+      const success = await updateGroupName(group.id, name.trim());
       if (success) {
         toast({
           title: "Success",
           description: "Group name updated successfully",
-        })
-        onOpenChange(false)
-        onSuccess()
+        });
+        onOpenChange(false);
+        onSuccess();
       } else {
         toast({
           title: "Error",
           description: "Failed to update group name",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Something went wrong",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,12 +96,16 @@ export function EditGroupDialog({ open, onOpenChange, group, onSuccess }: EditGr
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               {isSubmitting ? "Updating..." : "Update"}
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
