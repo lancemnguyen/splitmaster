@@ -110,7 +110,7 @@ export default function HomePage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-green-800">
             WeSplit
           </h1>
-          <p className="text-gray-600 mt-2 text-sm">
+          <p className="text-gray-600 mt-2 text-xs sm:text-sm">
             Share expenses easily
             <span className="font-bold text-green-800"> • </span>
             No sign-up required
