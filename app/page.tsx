@@ -97,7 +97,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-2">
             <Image
@@ -108,10 +108,10 @@ export default function HomePage() {
             />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-green-800">
-            WeSplit
+            Splitmaster
           </h1>
           <p className="text-gray-600 mt-2 text-xs sm:text-sm">
-            Share expenses easily
+            Split expenses easily
             <span className="font-bold text-green-800"> • </span>
             No sign-up required
             <span className="font-bold text-green-800"> • </span>

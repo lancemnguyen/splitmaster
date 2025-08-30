@@ -8,7 +8,7 @@ import { Analytics } from "@vercel/analytics/next"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "WeSplit - Split Expenses Easily",
+  title: "Splitmaster - Split expenses easily",
   description: "Simple and elegant expense splitting app. Create groups, add expenses, and track who owes what.",
     generator: 'v0.dev'
 }
