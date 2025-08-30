@@ -110,7 +110,7 @@ export function SimplifyDialog({
                   {savings > 0 && (
                     <Badge
                       variant="secondary"
-                      className="bg-green-100 text-green-800"
+                      className="bg-green-100 text-green-800 hover:bg-green-100"
                     >
                       Saved {savings} transaction{savings !== 1 ? "s" : ""}
                     </Badge>

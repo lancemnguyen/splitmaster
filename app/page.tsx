@@ -97,7 +97,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 sm:space-y-8">
+      <div className="space-y-6">
         <div className="text-center">
           <div className="flex justify-center mb-2">
             <Image
@@ -122,18 +122,18 @@ export default function HomePage() {
         <div className="space-y-4 sm:space-y-4">
           <Card>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                Create New Group
+                Start a new group & invite others
               </CardTitle>
-              <CardDescription className="text-sm">
-                Start a new expense group and invite others
-              </CardDescription>
+              {/* <CardDescription className="text-sm">
+                Start a new group and invite others
+              </CardDescription> */}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="groupName" className="text-sm">
-                  Group Name
+                  Group name:
                 </Label>
                 <Input
                   id="groupName"
@@ -144,14 +144,16 @@ export default function HomePage() {
                   className="text-sm sm:text-base"
                 />
               </div>
-              <Button
-                onClick={handleCreateGroup}
-                disabled={isCreating}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
-              >
-                {isCreating ? "Creating..." : "Create Group"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleCreateGroup}
+                  disabled={isCreating}
+                  className="w-48 bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
+                >
+                  {isCreating ? "Creating..." : "Create Group"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -168,18 +170,18 @@ export default function HomePage() {
 
           <Card>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                Join Existing Group
+                Join existing group
               </CardTitle>
-              <CardDescription className="text-sm">
+              {/* <CardDescription className="text-sm">
                 Enter the group code to join an existing group
-              </CardDescription>
+              </CardDescription> */}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="groupCode" className="text-sm">
-                  Group Code
+                  Enter group code:
                 </Label>
                 <Input
                   id="groupCode"
@@ -190,15 +192,17 @@ export default function HomePage() {
                   className="uppercase text-sm sm:text-base"
                 />
               </div>
-              <Button
-                onClick={handleJoinGroup}
-                disabled={isJoining}
-                variant="outline"
-                className="w-full bg-transparent text-sm sm:text-base"
-              >
-                {isJoining ? "Joining..." : "Join Group"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleJoinGroup}
+                  disabled={isJoining}
+                  variant="outline"
+                  className="w-48 bg-transparent text-sm sm:text-base"
+                >
+                  {isJoining ? "Joining..." : "Join Group"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

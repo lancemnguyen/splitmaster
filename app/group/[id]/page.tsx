@@ -249,7 +249,7 @@ export default function GroupPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSimplify(true)}
-                  className="bg-blue-200 hover:bg-blue-300"
+                  className="bg-yellow-200 hover:bg-yellow-300"
                 >
                   <Minimize2 className="mr-2 h-4 w-4" />
                   Simplify
