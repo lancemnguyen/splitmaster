@@ -21,8 +21,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/png" sizes="32x32" href="/payment32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/payment16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/divided32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/divided16.png" />
       </head>
       <body className={inter.className}>
         {children}
