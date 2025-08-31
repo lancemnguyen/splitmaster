@@ -13,6 +13,7 @@ import {
   Trash2,
   Copy,
   Minimize2,
+  Info,
 } from "lucide-react";
 import {
   getGroup,
@@ -208,7 +209,13 @@ export default function GroupPage() {
                   {group.code}
                   <Copy className="ml-1 h-3 w-3" />
                 </Badge>
-                <p className="text-xs text-red-500">(save code for later!)</p>
+              </div>
+              <div className="mt-2 flex w-fit items-start gap-2 rounded-md bg-blue-50 p-2 text-xs text-blue-700 border border-blue-200">
+                <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <p>
+                  <strong>Tip:</strong> Save this code! You'll need it to
+                  invite others or rejoin this group later.
+                </p>
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
