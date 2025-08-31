@@ -213,7 +213,7 @@ export default function GroupPage() {
               <div className="mt-2 flex w-fit items-start gap-2 rounded-md bg-blue-50 p-2 text-xs text-blue-700 border border-blue-200">
                 <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <p>
-                  <strong>Tip:</strong> Save this code to invite others or rejoin this group later.
+                  <strong>Tip:</strong> Save this code to invite others or rejoin later.
                 </p>
               </div>
             </div>
