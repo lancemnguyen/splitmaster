@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -80,25 +80,22 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
       </div>
 
       {showDetails && (
-        <div className="bg-gray-50 rounded-md p-3 text-xs">
+        <div className="bg-gray-100 rounded-md p-3 text-xs w-fit">
           {loading ? (
             <div className="flex items-center justify-center py-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
             </div>
           ) : (
-            <div className="space-y-1">
-              <div className="font-medium text-gray-700 mb-2">
+            <div className="grid grid-cols-[1fr_auto] items-center gap-x-8 gap-y-1">
+              <div className="font-medium text-gray-700 mb-2 col-span-2">
                 Split breakdown:
               </div>
               {splits.map((split) => {
                 const member = members.find((m) => m.id === split.member_id);
                 return (
-                  <div
-                    key={split.id}
-                    className="flex justify-between items-center"
-                  >
+                  <Fragment key={split.id}>
                     <span>{member?.name || "Unknown"}</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-self-end gap-2">
                       <span>{formatCurrency(split.amount)}</span>
                       {expense.split_method === "percentage" && (
                         <span className="text-gray-500">
@@ -106,7 +103,7 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </Fragment>
                 );
               })}
             </div>

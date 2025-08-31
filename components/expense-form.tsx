@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -339,26 +339,26 @@ export function ExpenseForm({
 
       {/* Split Preview */}
       {selectedMembers.length > 0 && amount && (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <Label className="text-sm font-medium">Split Preview:</Label>
-          <div className="mt-2 space-y-1">
-            {currentSplits.map((split) => {
-              const member = members.find((m) => m.id === split.memberId);
-              return (
-                <div
-                  key={split.memberId}
-                  className="flex justify-between text-sm"
-                >
-                  <span>{member?.name}</span>
-                  <span>${split.amount.toFixed(2)}</span>
-                </div>
-              );
-            })}
-            <div className="border-t pt-2 mt-2">
-              <div className="flex justify-between text-sm font-semibold">
-                <span>Total</span>
-                <span>${currentTotal.toFixed(2)}</span>
-              </div>
+        <div className="flex justify-end">
+          <div className="bg-gray-50 p-4 rounded-lg w-fit">
+            <Label className="text-sm font-medium">Split Preview:</Label>
+            <div className="mt-2 grid grid-cols-[1fr_auto] gap-x-8 gap-y-1 text-sm">
+              {currentSplits.map((split) => {
+                const member = members.find((m) => m.id === split.memberId);
+                return (
+                  <Fragment key={split.memberId}>
+                    <span>{member?.name}</span>
+                    <span className="justify-self-end">
+                      ${split.amount.toFixed(2)}
+                    </span>
+                  </Fragment>
+                );
+              })}
+              <div className="col-span-2 border-t my-2"></div>
+              <span className="font-semibold">Total</span>
+              <span className="font-semibold justify-self-end">
+                ${currentTotal.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
