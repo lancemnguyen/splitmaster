@@ -185,7 +185,7 @@ export default function GroupPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ">
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
@@ -213,8 +213,7 @@ export default function GroupPage() {
               <div className="mt-2 flex w-fit items-start gap-2 rounded-md bg-blue-50 p-2 text-xs text-blue-700 border border-blue-200">
                 <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <p>
-                  <strong>Tip:</strong> Save this code! You'll need it to
-                  invite others or rejoin this group later.
+                  <strong>Tip:</strong> Save this code to invite others or rejoin this group later.
                 </p>
               </div>
             </div>
@@ -249,9 +248,7 @@ export default function GroupPage() {
           <div className="lg:col-span-1">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Balances</CardTitle>
-                </div>
+                <CardTitle>Balances</CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
