@@ -194,7 +194,7 @@ export function ExpenseForm({
           </Label>
           <Input
             id="description"
-            placeholder="e.g., Dinner at restaurant"
+            placeholder="e.g., Groceries"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

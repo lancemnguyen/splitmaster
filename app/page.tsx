@@ -137,7 +137,7 @@ export default function HomePage() {
                 </Label>
                 <Input
                   id="groupName"
-                  placeholder="e.g., Weekend Trip, Dinner"
+                  placeholder="e.g., Weekend Trip"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateGroup()}
