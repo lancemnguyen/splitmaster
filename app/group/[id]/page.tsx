@@ -13,6 +13,8 @@ import {
   Trash2,
   Copy,
   Minimize2,
+  ChevronUp,
+  ChevronDown,
   Info,
 } from "lucide-react";
 import {
@@ -49,6 +51,7 @@ export default function GroupPage() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [showEditGroup, setShowEditGroup] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [expandedExpenseId, setExpandedExpenseId] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -353,13 +356,15 @@ export default function GroupPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 sm:space-y-4">
-                  {expenses.map((expense) => (
-                    <div
+                  {expenses.map((expense) => {
+                    const isExpanded = expandedExpenseId === expense.id;
+                    return (
+                      <div
                       key={expense.id}
                       className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50"
                     >
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-4">
+                        <div className="w-full flex-1 min-w-0">
                           <div className="flex flex-row items-center gap-2 mb-2">
                             <h3 className="font-semibold text-sm sm:text-base truncate">
                               {expense.description}
@@ -381,29 +386,47 @@ export default function GroupPage() {
                           <ExpenseSplitInfo
                             expense={expense}
                             members={members}
+                            isExpanded={isExpanded}
                           />
                         </div>
-                        <div className="flex gap-1 flex-shrink-0">
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0 self-end sm:self-auto">
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingExpense(expense)}
+                              className="hover:bg-gray-100"
+                            >
+                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                            </Button>
+                          </div>
                           <Button
                             variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingExpense(expense)}
-                            className="hover:bg-gray-100"
+                            onClick={() =>
+                              setExpandedExpenseId(isExpanded ? null : expense.id)
+                            }
+                            className="h-auto px-2 py-1 text-xs text-muted-foreground flex items-center"
                           >
-                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteExpense(expense.id)}
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                            {isExpanded ? "Hide breakdown" : "Show breakdown"}
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3 ml-1" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3 ml-1" />
+                            )}
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                   {expenses.length === 0 && (
                     <div className="text-center py-6 sm:py-8">
                       <Receipt className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />

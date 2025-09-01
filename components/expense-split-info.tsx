@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useEffect, Fragment, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { getExpenseSplits } from "@/lib/database";
 import type { Expense, ExpenseSplit, Member } from "@/lib/supabase";
 
 interface ExpenseSplitInfoProps {
   expense: Expense;
   members: Member[];
+  isExpanded: boolean;
 }
 
-export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
+export function ExpenseSplitInfo({
+  expense,
+  members,
+  isExpanded,
+}: ExpenseSplitInfoProps) {
   const [splits, setSplits] = useState<ExpenseSplit[]>([]);
-  const [showDetails, setShowDetails] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const loadSplits = async () => {
@@ -27,10 +29,10 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
   };
 
   useEffect(() => {
-    if (showDetails) {
+    if (isExpanded) {
       loadSplits();
     }
-  }, [showDetails]);
+  }, [isExpanded]);
 
   const getSplitMethodDisplay = () => {
     switch (expense.split_method) {
@@ -57,39 +59,21 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
 
   return (
     <div className="mt-2">
-      <div className="flex max-w-[300px] justify-between mb-2">
-        <Badge variant="secondary" className="text-xs font-normal">
-          {getSplitMethodDisplay()}
-        </Badge>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowDetails(!showDetails)}
-          className="h-6 px-2 text-xs"
-        >
-          {showDetails ? (
-            <>
-              Hide details <ChevronUp className="h-3 w-3 ml-1" />
-            </>
-          ) : (
-            <>
-              Show details <ChevronDown className="h-3 w-3 ml-1" />
-            </>
-          )}
-        </Button>
-      </div>
+      <Badge variant="secondary" className="text-xs font-normal">
+        {getSplitMethodDisplay()}
+      </Badge>
 
-      {showDetails && (
-        <div className="bg-gray-100 rounded-md p-3 text-xs w-fit">
+      {isExpanded && (
+        <div className="bg-gray-100 rounded-md p-3 text-xs mt-2 w-fit">
           {loading ? (
             <div className="flex items-center justify-center py-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
             </div>
           ) : (
             <div className="grid grid-cols-[1fr_auto] items-center gap-x-8 gap-y-1">
-              <div className="font-medium text-gray-700 mb-2 col-span-2">
+              {/* <div className="font-medium text-gray-700 mb-2 col-span-2">
                 Split breakdown:
-              </div>
+              </div> */}
               {splits.map((split) => {
                 const member = members.find((m) => m.id === split.member_id);
                 return (
