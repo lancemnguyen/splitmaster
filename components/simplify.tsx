@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, TrendingDown } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Balance } from "@/lib/supabase";
 
 interface SimplifyDialogProps {
@@ -30,6 +32,11 @@ export function SimplifyDialog({
   onOpenChange,
   balances,
 }: SimplifyDialogProps) {
+  const isMobile = useIsMobile();
+
+  const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
+  const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -176,13 +183,52 @@ export function SimplifyDialog({
             </div>
           )}
 
-          <div className="flex justify-end pt-4 border-t">
+          <div className="pt-2 border-t">
+            {transactions.length > 0 && (
+              <div className="text-center mb-2">
+                <span className="text-sm text-muted-foreground">
+                  Settle up with
+                </span>
+                <div className="flex justify-center items-center gap-4 mt-1">
+                  <a
+                    href={paypalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-opacity hover:opacity-80"
+                  >
+                    <Image
+                      src="/paypal-icon.png"
+                      alt="PayPal"
+                      width={32}
+                      height={32}
+                      className="object-contain"
+                    />
+                  </a>
+                  <a
+                    href={venmoLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-opacity hover:opacity-80"
+                  >
+                    <Image
+                      src="/venmo-icon.png"
+                      alt="Venmo"
+                      width={32}
+                      height={32}
+                      className="object-contain"
+                    />
+                  </a>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end">
             <Button
               onClick={() => onOpenChange(false)}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Close
             </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
