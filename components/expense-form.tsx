@@ -73,16 +73,16 @@ export function ExpenseForm({
     }
   }, [expense, expenseSplits, members]);
 
-  const categories = [
-    "General",
-    "Food",
-    "Transportation",
-    "Entertainment",
-    "Accommodation",
-    "Shopping",
-    "Utilities",
-    "Other",
-  ];
+  // const categories = [
+  //   "General",
+  //   "Food",
+  //   "Transportation",
+  //   "Entertainment",
+  //   "Accommodation",
+  //   "Shopping",
+  //   "Utilities",
+  //   "Other",
+  // ];
 
   const calculateSplits = () => {
     const totalAmount = Number.parseFloat(amount);
@@ -188,7 +188,7 @@ export function ExpenseForm({
     <div className="space-y-6">
       {/* Basic Info */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+        <div className="space-y-2 col-span-2">
           <Label htmlFor="description">
             Description <span className="text-red-500">*</span>
           </Label>
@@ -212,24 +212,6 @@ export function ExpenseForm({
             onChange={(e) => setAmount(e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
         <div className="space-y-2">
           <Label htmlFor="paidBy">
             Paid by <span className="text-red-500">*</span>
@@ -248,7 +230,6 @@ export function ExpenseForm({
           </Select>
         </div>
       </div>
-
       {/* Split Configuration */}
       <div className="space-y-4">
         {/* <Label>How to split?</Label> */}

@@ -369,12 +369,12 @@ export default function GroupPage() {
                             <h3 className="font-semibold text-sm sm:text-base truncate">
                               {expense.description}
                             </h3>
-                            <Badge
+                            {/* <Badge
                               variant="outline"
                               className="text-xs"
                             >
                               {expense.category}
-                            </Badge>
+                            </Badge> */}
                           </div>
                           <p className="text-xs sm:text-sm text-cyan-600 mb-2">
                             Paid by {expense.paid_by_member?.name} • <span className="font-semibold">{formatCurrency(expense.amount)}</span>
