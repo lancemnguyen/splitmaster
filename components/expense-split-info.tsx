@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, Fragment, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { getExpenseSplits } from "@/lib/database";
 import type { Expense, ExpenseSplit, Member } from "@/lib/supabase";
 
@@ -33,18 +32,7 @@ export function ExpenseSplitInfo({
       loadSplits();
     }
   }, [isExpanded]);
-
-  const getSplitMethodDisplay = () => {
-    switch (expense.split_method) {
-      case "percentage":
-        return "Split by %";
-      case "amount":
-        return "Split by amount";
-      case "equal":
-      default:
-        return "Split equally";
-    }
-  };
+  
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -57,41 +45,34 @@ export function ExpenseSplitInfo({
     return ((splitAmount / expense.amount) * 100).toFixed(1);
   };
 
-  return (
-    <div className="mt-2">
-      <Badge variant="secondary" className="text-xs font-normal">
-        {getSplitMethodDisplay()}
-      </Badge>
+  if (!isExpanded) {
+    return null;
+  }
 
-      {isExpanded && (
-        <div className="bg-gray-100 rounded-md p-3 text-xs mt-2 w-fit">
-          {loading ? (
-            <div className="flex items-center justify-center py-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-[1fr_auto] items-center gap-x-8 gap-y-1">
-              {/* <div className="font-medium text-gray-700 mb-2 col-span-2">
-                Split breakdown:
-              </div> */}
-              {splits.map((split) => {
-                const member = members.find((m) => m.id === split.member_id);
-                return (
-                  <Fragment key={split.id}>
-                    <span>{member?.name || "Unknown"}</span>
-                    <div className="flex items-center justify-self-end gap-2">
-                      <span>{formatCurrency(split.amount)}</span>
-                      {expense.split_method === "percentage" && (
-                        <span className="text-gray-500">
-                          ({getPercentage(split.amount)}%)
-                        </span>
-                      )}
-                    </div>
-                  </Fragment>
-                );
-              })}
-            </div>
-          )}
+  return (
+    <div className="bg-gray-100 rounded-md p-3 text-xs mt-2 w-fit">
+      {loading ? (
+        <div className="flex items-center justify-center py-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-[1fr_auto] items-center gap-x-8 gap-y-1">
+          {splits.map((split) => {
+            const member = members.find((m) => m.id === split.member_id);
+            return (
+              <Fragment key={split.id}>
+                <span>{member?.name || "Unknown"}</span>
+                <div className="flex items-center justify-self-end gap-2">
+                  <span>{formatCurrency(split.amount)}</span>
+                  {expense.split_method === "percentage" && (
+                    <span className="text-gray-500">
+                      ({getPercentage(split.amount)}%)
+                    </span>
+                  )}
+                </div>
+              </Fragment>
+            );
+          })}
         </div>
       )}
     </div>

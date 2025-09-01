@@ -134,6 +134,18 @@ export default function GroupPage() {
     return "text-gray-600";
   };
 
+  const getSplitMethodDisplay = (method: string) => {
+    switch (method) {
+      case "percentage":
+        return "Split by %";
+      case "amount":
+        return "Split by amount";
+      case "equal":
+      default:
+        return "Split equally";
+    }
+  };
+
   const handleRemoveMember = async (member: Member) => {
     if (
       confirm(
@@ -365,8 +377,8 @@ export default function GroupPage() {
                     >
                       <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-4">
                         <div className="w-full flex-1 min-w-0">
-                          <div className="flex flex-row items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-sm sm:text-base truncate">
+                          <div className="flex items-center">
+                            <h3 className="font-semibold text-sm sm:text-base truncate pr-4">
                               {expense.description}
                             </h3>
                             {/* <Badge
@@ -375,19 +387,23 @@ export default function GroupPage() {
                             >
                               {expense.category}
                             </Badge> */}
+                            <span className="font-semibold text-cyan-600 text-sm sm:text-base flex-shrink-0">
+                              {formatCurrency(expense.amount)}
+                            </span>
                           </div>
-                          <p className="text-xs sm:text-sm text-cyan-600 mb-2">
-                            Paid by {expense.paid_by_member?.name} • <span className="font-semibold">{formatCurrency(expense.amount)}</span>
+                          <p className="text-xs sm:text-sm text-gray-500 mt-3 mb-2">
+                            Paid by {expense.paid_by_member?.name} •{" "}
+                            <Badge
+                              variant="secondary"
+                              className="font-normal"
+                            >
+                              {getSplitMethodDisplay(expense.split_method)}
+                            </Badge>
                           </p>
                           {/* <p className="text-xs text-gray-500">
                             {new Date(expense.created_at).toLocaleDateString()} at{" "}
                             {new Date(expense.created_at).toLocaleTimeString()}
                           </p> */}
-                          <ExpenseSplitInfo
-                            expense={expense}
-                            members={members}
-                            isExpanded={isExpanded}
-                          />
                         </div>
                         <div className="flex flex-col items-end gap-1 flex-shrink-0 self-end sm:self-auto">
                           <div className="flex gap-1">
@@ -422,6 +438,11 @@ export default function GroupPage() {
                               <ChevronDown className="h-3 w-3 ml-1" />
                             )}
                           </Button>
+                          <ExpenseSplitInfo
+                            expense={expense}
+                            members={members}
+                            isExpanded={isExpanded}
+                          />
                         </div>
                       </div>
                       </div>

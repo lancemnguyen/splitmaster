@@ -29,7 +29,7 @@ export type Expense = {
   created_at: string
   updated_at: string
   paid_by_member?: Member
-  split_method?: string
+  split_method: string
   split_config?: Record<string, any>
 }
 
