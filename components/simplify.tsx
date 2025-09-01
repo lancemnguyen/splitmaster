@@ -158,21 +158,18 @@ export function SimplifyDialog({
         <div className="space-y-4">
           {transactions.length > 0 ? (
             <>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-900">
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-yellow-900">
                     Optimized Result
+                    {savings > 0 && (
+                      <span className="text-yellow-700">
+                        {`: Saved ${savings} transaction${savings !== 1 ? "s" : ""}`}
+                      </span>
+                    )}
                   </span>
-                  {savings > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="bg-green-100 text-green-800 hover:bg-green-100"
-                    >
-                      Saved {savings} transaction{savings !== 1 ? "s" : ""}
-                    </Badge>
-                  )}
                 </div>
-                <p className="text-sm text-blue-700">
+                <p className="text-xs sm:text-sm text-yellow-700">
                   {transactions.length} transaction
                   {transactions.length !== 1 ? "s" : ""} needed to settle all
                   debts
