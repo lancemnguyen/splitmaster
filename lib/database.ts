@@ -1,5 +1,12 @@
 import { supabase } from "./supabase";
-import type { Group, Member, Expense, ExpenseSplit, Balance } from "./supabase";
+import type {
+  Group,
+  Member,
+  Expense,
+  ExpenseSplit,
+  Balance,
+  Settlement,
+} from "./supabase";
 
 // Group operations
 export async function createGroup(name: string): Promise<Group | null> {
@@ -117,6 +124,11 @@ export async function removeMember(memberId: string): Promise<boolean> {
     .select("id")
     .eq("member_id", memberId)
     .limit(1);
+  const { data: settlements } = await supabase
+    .from("settlements")
+    .select("id")
+    .or(`from_member_id.eq.${memberId},to_member_id.eq.${memberId}`)
+    .limit(1);
 
   if (expenses && expenses.length > 0) {
     console.error("Cannot remove member: has expenses");
@@ -125,6 +137,11 @@ export async function removeMember(memberId: string): Promise<boolean> {
 
   if (splits && splits.length > 0) {
     console.error("Cannot remove member: involved in expense splits");
+    return false;
+  }
+
+  if (settlements && settlements.length > 0) {
+    console.error("Cannot remove member: involved in settlements");
     return false;
   }
 
@@ -220,6 +237,19 @@ export async function getExpenseSplits(
   return data || [];
 }
 
+export async function getSettlements(groupId: string): Promise<Settlement[]> {
+  const { data, error } = await supabase
+    .from("settlements")
+    .select(`*`)
+    .eq("group_id", groupId);
+
+  if (error) {
+    console.error("Error fetching settlements:", error);
+    return [];
+  }
+  return data || [];
+}
+
 export async function updateExpense(
   expenseId: string,
   description: string,
@@ -285,10 +315,43 @@ export async function deleteExpense(expenseId: string): Promise<boolean> {
   return true;
 }
 
+export async function addSettlement({
+  groupId,
+  fromMemberId,
+  toMemberId,
+  amount,
+}: {
+  groupId: string;
+  fromMemberId: string;
+  toMemberId: string;
+  amount: number;
+}): Promise<Settlement | null> {
+  const { data, error } = await supabase
+    .from("settlements")
+    .insert({
+      group_id: groupId,
+      from_member_id: fromMemberId,
+      to_member_id: toMemberId,
+      amount,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding settlement:", error);
+    return null;
+  }
+
+  return data;
+}
+
 // Balance calculations
 export async function getBalances(groupId: string): Promise<Balance[]> {
-  const members = await getMembers(groupId);
-  const expenses = await getExpenses(groupId);
+  const [members, expenses, settlements] = await Promise.all([
+    getMembers(groupId),
+    getExpenses(groupId),
+    getSettlements(groupId),
+  ]);
 
   const balances: { [memberId: string]: number } = {};
 
@@ -312,6 +375,16 @@ export async function getBalances(groupId: string): Promise<Balance[]> {
       }
     });
   }
+
+  // Adjust balances with settlements
+  settlements.forEach((settlement) => {
+    if (balances[settlement.from_member_id] !== undefined) {
+      balances[settlement.from_member_id] += settlement.amount;
+    }
+    if (balances[settlement.to_member_id] !== undefined) {
+      balances[settlement.to_member_id] -= settlement.amount;
+    }
+  });
 
   return members.map((member) => ({
     member_id: member.id,
