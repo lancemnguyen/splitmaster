@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ import { toast } from "@/hooks/use-toast";
 import { EditGroupDialog } from "@/components/edit-group";
 import { EditMemberDialog } from "@/components/edit-member";
 import { ExpenseSplitInfo } from "@/components/expense-split-info";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function GroupPage() {
   const params = useParams();
@@ -52,6 +54,11 @@ export default function GroupPage() {
   const [showEditGroup, setShowEditGroup] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [expandedExpenseIds, setExpandedExpenseIds] = useState<string[]>([]);
+
+  const isMobile = useIsMobile();
+
+  const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
+  const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
 
   const loadData = async () => {
     setLoading(true);
@@ -296,6 +303,41 @@ export default function GroupPage() {
                       No members yet
                     </p>
                   )}
+                </div>
+                <div className="mt-4 pt-2 border-t text-center">
+                  <span className="text-sm text-muted-foreground">
+                    Settle up with
+                  </span>
+                  <div className="flex justify-center items-center gap-4 mt-1">
+                    <a
+                      href={paypalLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-opacity hover:opacity-80"
+                    >
+                      <Image
+                        src="/paypal-icon.png"
+                        alt="PayPal"
+                        width={36}
+                        height={36}
+                        className="object-contain"
+                      />
+                    </a>
+                    <a
+                      href={venmoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-opacity hover:opacity-80"
+                    >
+                      <Image
+                        src="/venmo-icon.png"
+                        alt="Venmo"
+                        width={36}
+                        height={36}
+                        className="object-contain"
+                      />
+                    </a>
+                  </div>
                 </div>
               </CardContent>
             </Card>
