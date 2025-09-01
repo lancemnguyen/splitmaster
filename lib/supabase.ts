@@ -46,3 +46,12 @@ export type Balance = {
   member_name: string
   balance: number
 }
+
+export type Settlement = {
+  id: string
+  group_id: string
+  from_member_id: string
+  to_member_id: string
+  amount: number
+  created_at: string
+}

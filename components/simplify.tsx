@@ -69,8 +69,6 @@ export function SimplifyDialog({
       groupId,
       fromMemberId,
       toMemberId,
-      fromName: transaction.from,
-      toName: transaction.to,
       amount: transaction.amount,
     });
 
@@ -245,7 +243,7 @@ export function SimplifyDialog({
                 All Settled Up!
               </h3>
               <p className="text-gray-500">
-                Everyone's balances are already even.
+                Everyone's balances are even.
               </p>
               <p className="text-sm text-gray-400 mt-1">
                 No transactions needed.

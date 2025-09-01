@@ -23,11 +23,12 @@ import {
   getGroup,
   getMembers,
   getExpenses,
+  getSettlements,
   getBalances,
   deleteExpense,
   removeMember,
 } from "@/lib/database";
-import type { Group, Member, Expense, Balance } from "@/lib/supabase";
+import type { Group, Member, Expense, Balance, Settlement } from "@/lib/supabase";
 import { AddExpenseDialog } from "@/components/add-expense";
 import { AddMemberDialog } from "@/components/add-member";
 import { EditExpenseDialog } from "@/components/edit-expense";
@@ -44,6 +45,7 @@ export default function GroupPage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [balances, setBalances] = useState<Balance[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddExpense, setShowAddExpense] = useState(false);
@@ -58,23 +60,24 @@ export default function GroupPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [groupData, membersData, expensesData, balancesData] =
+      const [groupData, membersData, expensesData, settlementsData, balancesData] =
         await Promise.all([
           getGroup(groupId),
           getMembers(groupId),
           getExpenses(groupId),
+          getSettlements(groupId),
           getBalances(groupId),
         ]);
 
       setGroup(groupData);
       setMembers(membersData);
       setExpenses(expensesData);
+      setSettlements(settlementsData);
       setBalances(balancesData);
 
       // Calculate total expenses
-      const total = expensesData
-        .filter((expense) => expense.category !== "Settlement")
-        .reduce((sum, expense) => sum + expense.amount, 0);
+      // Settlements are now separate, so no need to filter them out
+      const total = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
       setTotalExpenses(total);
     } catch (error) {
       toast({
@@ -123,10 +126,12 @@ export default function GroupPage() {
   };
 
   const formatCurrency = (amount: number) => {
+    // Treat very small numbers close to zero as 0 to avoid showing "-$0.00"
+    const valueToFormat = Math.abs(amount) < 0.01 ? 0 : amount;
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-    }).format(amount);
+    }).format(valueToFormat);
   };
 
   const getBalanceColor = (balance: number) => {
@@ -196,6 +201,11 @@ export default function GroupPage() {
       </div>
     );
   }
+
+  const allItems = [...expenses, ...settlements].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ">
@@ -293,7 +303,7 @@ export default function GroupPage() {
                     </div>
                   ))}
                   {balances.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">
+                    <p className="text-gray-500 text-center py-2 mt-2">
                       No members yet
                     </p>
                   )}
@@ -353,6 +363,11 @@ export default function GroupPage() {
                       </div>
                     </div>
                   ))}
+                  {members.length === 0 && (
+                    <p className="text-gray-500 text-center py-2">
+                      No members yet
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -364,45 +379,49 @@ export default function GroupPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-green-800" />
-                  <span>
-                    Items ({expenses.filter((e) => e.category !== "Settlement").length})
-                  </span>
+                  <span>Items ({allItems.length})</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 sm:space-y-4">
-                  {expenses.map((expense) => {
-                    if (expense.category === "Settlement") {
-                      const match = expense.description.match(
-                        /Settlement from (.*) to (.*)/
+                  {allItems.map((item) => {
+                    // Type guard to check if it's a settlement
+                    if ("from_member_id" in item) {
+                      const settlement = item as Settlement;
+                      const fromMember = members.find(
+                        (m) => m.id === settlement.from_member_id
                       );
-                      const fromName = match ? match[1] : "Someone";
-                      const toName = match ? match[2] : "Someone";
+                      const toMember = members.find(
+                        (m) => m.id === settlement.to_member_id
+                      );
 
                       return (
                         <div
-                          key={expense.id}
+                          key={settlement.id}
                           className="border rounded-lg p-3 sm:p-4 bg-slate-50 border-slate-200"
                         >
                           <div className="flex items-center justify-end gap-4">
                             <div className="flex items-center gap-3">
                               <Handshake className="h-5 w-5 text-green-600 flex-shrink-0" />
                               <p className="text-sm sm:text-base text-gray-800">
-                                <span className="font-semibold">{fromName}</span>{" "}
+                                <span className="font-semibold">
+                                  {fromMember?.name || "Person 1"}
+                                </span>{" "}
                                 paid{" "}
-                                <span className="font-semibold">{toName}</span>
+                                <span className="font-semibold">
+                                  {toMember?.name || "Person 2"}
+                                </span>
                               </p>
                             </div>
                             <span className="font-semibold text-green-700 text-sm sm:text-base flex-shrink-0">
-                              {formatCurrency(expense.amount)}
+                              {formatCurrency(settlement.amount)}
                             </span>
                           </div>
                         </div>
                       );
                     } else {
-                      const isExpanded = expandedExpenseIds.includes(
-                        expense.id
-                      );
+                      const expense = item as Expense;
+                      const isExpanded = expandedExpenseIds.includes(expense.id);
                       return (
                         <div
                           key={expense.id}
@@ -411,7 +430,7 @@ export default function GroupPage() {
                           <div className="flex flex-row justify-between items-start gap-4">
                             <div className="w-full flex-1 min-w-0">
                               <div className="flex items-center">
-                                <h3 className="font-semibold text-sm sm:text-base truncate pr-2">
+                                <h3 className="font-semibold text-sm sm:text-base truncate pr-2 flex-grow">
                                   {expense.description}
                                 </h3>
                                 <span className="font-semibold text-cyan-600 text-sm sm:text-base flex-shrink-0">
@@ -470,7 +489,7 @@ export default function GroupPage() {
                       );
                     }
                   })}
-                  {expenses.length === 0 && (
+                  {allItems.length === 0 && (
                     <div className="text-center py-6 sm:py-8">
                       <Receipt className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-500">No expenses yet</p>
