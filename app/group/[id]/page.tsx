@@ -375,10 +375,10 @@ export default function GroupPage() {
                       key={expense.id}
                       className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50"
                     >
-                      <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-4">
+                      <div className="flex flex-row justify-between items-start gap-4">
                         <div className="w-full flex-1 min-w-0">
                           <div className="flex items-center">
-                            <h3 className="font-semibold text-sm sm:text-base truncate pr-4">
+                            <h3 className="font-semibold text-sm sm:text-base truncate pr-2">
                               {expense.description}
                             </h3>
                             {/* <Badge
@@ -424,7 +424,7 @@ export default function GroupPage() {
                             {new Date(expense.created_at).toLocaleTimeString()}
                           </p> */}
                         </div>
-                        <div className="flex-shrink-0 self-end sm:self-auto">
+                        <div className="flex-shrink-0">
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
