@@ -391,7 +391,7 @@ export default function GroupPage() {
                               {formatCurrency(expense.amount)}
                             </span>
                           </div>
-                          <p className="text-xs sm:text-sm text-gray-500 mt-3 mb-2">
+                          <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-2">
                             Paid by {expense.paid_by_member?.name} •{" "}
                             <Badge
                               variant="secondary"
@@ -400,12 +400,31 @@ export default function GroupPage() {
                               {getSplitMethodDisplay(expense.split_method)}
                             </Badge>
                           </p>
+                          <Button
+                            variant="ghost"
+                            onClick={() =>
+                              setExpandedExpenseId(isExpanded ? null : expense.id)
+                            }
+                            className="h-auto px-0 py-1 text-xs text-muted-foreground flex items-center"
+                          >
+                            {isExpanded ? "Hide breakdown" : "Show breakdown"}
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </Button>
+                          <ExpenseSplitInfo
+                            expense={expense}
+                            members={members}
+                            isExpanded={isExpanded}
+                          />
                           {/* <p className="text-xs text-gray-500">
                             {new Date(expense.created_at).toLocaleDateString()} at{" "}
                             {new Date(expense.created_at).toLocaleTimeString()}
                           </p> */}
                         </div>
-                        <div className="flex flex-col items-end gap-1 flex-shrink-0 self-end sm:self-auto">
+                        <div className="flex-shrink-0 self-end sm:self-auto">
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
@@ -424,25 +443,6 @@ export default function GroupPage() {
                               <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                             </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            onClick={() =>
-                              setExpandedExpenseId(isExpanded ? null : expense.id)
-                            }
-                            className="h-auto px-2 py-1 text-xs text-muted-foreground flex items-center"
-                          >
-                            {isExpanded ? "Hide breakdown" : "Show breakdown"}
-                            {isExpanded ? (
-                              <ChevronUp className="h-3 w-3 ml-1" />
-                            ) : (
-                              <ChevronDown className="h-3 w-3 ml-1" />
-                            )}
-                          </Button>
-                          <ExpenseSplitInfo
-                            expense={expense}
-                            members={members}
-                            isExpanded={isExpanded}
-                          />
                         </div>
                       </div>
                       </div>
