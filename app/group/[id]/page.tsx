@@ -360,7 +360,7 @@ export default function GroupPage() {
                     >
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-row items-center gap-2 mb-1">
+                          <div className="flex flex-row items-center gap-2 mb-2">
                             <h3 className="font-semibold text-sm sm:text-base truncate">
                               {expense.description}
                             </h3>

@@ -57,7 +57,7 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
 
   return (
     <div className="mt-2">
-      <div className="flex w-full max-w-[280px] items-center justify-between mb-2">
+      <div className="flex max-w-[300px] justify-between mb-2">
         <Badge variant="secondary" className="text-xs font-normal">
           {getSplitMethodDisplay()}
         </Badge>
