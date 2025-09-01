@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -11,14 +11,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, TrendingDown } from "lucide-react";
+import { ArrowRight, Check, Loader2, TrendingDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { addSettlement } from "@/lib/database";
+import { toast } from "@/hooks/use-toast";
 import type { Balance } from "@/lib/supabase";
 
 interface SimplifyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   balances: Balance[];
+  groupId: string;
+  onSuccess: () => void;
 }
 
 interface Transaction {
@@ -31,11 +35,58 @@ export function SimplifyDialog({
   open,
   onOpenChange,
   balances,
+  groupId,
+  onSuccess,
 }: SimplifyDialogProps) {
+  const [isSettling, setIsSettling] = useState<number | null>(null);
   const isMobile = useIsMobile();
 
   const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
   const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
+
+  const membersMap = useMemo(() => {
+    const map = new Map<string, string>();
+    balances.forEach((b) => map.set(b.member_name, b.member_id));
+    return map;
+  }, [balances]);
+
+  const handleSettle = async (transaction: Transaction, index: number) => {
+    setIsSettling(index);
+    const fromMemberId = membersMap.get(transaction.from);
+    const toMemberId = membersMap.get(transaction.to);
+
+    if (!fromMemberId || !toMemberId) {
+      toast({
+        title: "Error",
+        description: "Could not find member information to create settlement.",
+        variant: "destructive",
+      });
+      setIsSettling(null);
+      return;
+    }
+
+    const settlement = await addSettlement({
+      groupId,
+      fromMemberId,
+      toMemberId,
+      fromName: transaction.from,
+      toName: transaction.to,
+      amount: transaction.amount,
+    });
+
+    if (settlement) {
+      toast({ title: "Success", description: "Settlement recorded." });
+      onSuccess();
+      onOpenChange(false);
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to record settlement.",
+        variant: "destructive",
+      });
+    }
+    setIsSettling(null);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -130,32 +181,51 @@ export function SimplifyDialog({
                 </p>
               </div>
 
+              <p className="text-xs sm:text-sm text-muted-foreground px-1">
+                Click the checkmark if you've completed the transaction.
+              </p>
+
               <div className="space-y-3">
-                {/* <h3 className="font-medium text-gray-900">Simplified Transactions:</h3> */}
                 {transactions.map((transaction, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium text-sm">
-                            {transaction.from}
-                          </span>
-                          <div className="flex flex-col items-center">
-                            <ArrowRight className="h-4 w-12 text-gray-400" />
-                            <span className="text-xs text-gray-500 -mt-1">
-                              pays
+                  <div key={index} className="flex items-center gap-2">
+                    <Card className="flex-grow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-sm">
+                              {transaction.from}
+                            </span>
+                            <div className="flex flex-col items-center">
+                              <ArrowRight className="h-4 w-12 text-gray-400" />
+                              <span className="text-xs text-gray-500 -mt-1">
+                                pays
+                              </span>
+                            </div>
+                            <span className="font-medium text-sm">
+                              {transaction.to}
                             </span>
                           </div>
-                          <span className="font-medium text-sm">
-                            {transaction.to}
-                          </span>
+                          <div className="text-lg font-semibold text-green-600">
+                            {formatCurrency(transaction.amount)}
+                          </div>
                         </div>
-                        <div className="text-lg font-semibold text-green-600">
-                          {formatCurrency(transaction.amount)}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleSettle(transaction, index)}
+                      disabled={isSettling !== null}
+                      className="px-2.5"
+                      aria-label={`Settle transaction from ${transaction.from} to ${transaction.to}`}
+                    >
+                      {isSettling === index ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 ))}
               </div>
 
@@ -183,9 +253,9 @@ export function SimplifyDialog({
             </div>
           )}
 
-          <div className="pt-2 border-t">
+          <div className="pt-4 border-t">
             {transactions.length > 0 && (
-              <div className="text-center mb-2">
+              <div className="text-center mb-4">
                 <span className="text-sm text-muted-foreground">
                   Settle up with
                 </span>
@@ -199,8 +269,8 @@ export function SimplifyDialog({
                     <Image
                       src="/paypal-icon.png"
                       alt="PayPal"
-                      width={32}
-                      height={32}
+                      width={36}
+                      height={36}
                       className="object-contain"
                     />
                   </a>
@@ -213,8 +283,8 @@ export function SimplifyDialog({
                     <Image
                       src="/venmo-icon.png"
                       alt="Venmo"
-                      width={32}
-                      height={32}
+                      width={36}
+                      height={36}
                       className="object-contain"
                     />
                   </a>
@@ -222,12 +292,12 @@ export function SimplifyDialog({
               </div>
             )}
             <div className="flex justify-end">
-            <Button
-              onClick={() => onOpenChange(false)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Close
-            </Button>
+              <Button
+                onClick={() => onOpenChange(false)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>

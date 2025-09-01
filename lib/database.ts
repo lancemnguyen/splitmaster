@@ -285,6 +285,45 @@ export async function deleteExpense(expenseId: string): Promise<boolean> {
   return true;
 }
 
+export async function addSettlement({
+  groupId,
+  fromMemberId,
+  toMemberId,
+  fromName,
+  toName,
+  amount,
+}: {
+  groupId: string;
+  fromMemberId: string;
+  toMemberId: string;
+  fromName: string;
+  toName: string;
+  amount: number;
+}): Promise<Expense | null> {
+  const description = `Settlement from ${fromName} to ${toName}`;
+  const splits = [{ memberId: toMemberId, amount }];
+  const category = "Settlement";
+  const splitMethod = "amount";
+  const splitConfig = {
+    [toMemberId]: amount,
+  };
+
+  // The debtor (fromMemberId) is the one who "paid" this settlement expense.
+  // The creditor (toMemberId) is the one who this expense was "for".
+  // This will increase the debtor's balance and decrease the creditor's,
+  // moving them both towards zero.
+  return addExpense(
+    groupId,
+    description,
+    amount,
+    fromMemberId,
+    splits,
+    category,
+    splitMethod,
+    splitConfig
+  );
+}
+
 // Balance calculations
 export async function getBalances(groupId: string): Promise<Balance[]> {
   const members = await getMembers(groupId);

@@ -17,6 +17,7 @@ import {
   ChevronUp,
   ChevronDown,
   Info,
+  Handshake,
 } from "lucide-react";
 import {
   getGroup,
@@ -71,10 +72,9 @@ export default function GroupPage() {
       setBalances(balancesData);
 
       // Calculate total expenses
-      const total = expensesData.reduce(
-        (sum, expense) => sum + expense.amount,
-        0
-      );
+      const total = expensesData
+        .filter((expense) => expense.category !== "Settlement")
+        .reduce((sum, expense) => sum + expense.amount, 0);
       setTotalExpenses(total);
     } catch (error) {
       toast({
@@ -130,8 +130,8 @@ export default function GroupPage() {
   };
 
   const getBalanceColor = (balance: number) => {
-    if (balance > 0) return "text-green-600";
-    if (balance < 0) return "text-red-600";
+    if (balance > 0.01) return "text-green-600";
+    if (balance < -0.01) return "text-red-600";
     return "text-gray-600";
   };
 
@@ -364,88 +364,111 @@ export default function GroupPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-green-800" />
-                  <span>Items ({expenses.length})</span>
+                  <span>
+                    Items ({expenses.filter((e) => e.category !== "Settlement").length})
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 sm:space-y-4">
                   {expenses.map((expense) => {
-                    const isExpanded = expandedExpenseIds.includes(expense.id);
-                    return (
-                      <div
-                      key={expense.id}
-                      className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50"
-                    >
-                      <div className="flex flex-row justify-between items-start gap-4">
-                        <div className="w-full flex-1 min-w-0">
-                          <div className="flex items-center">
-                            <h3 className="font-semibold text-sm sm:text-base truncate pr-2">
-                              {expense.description}
-                            </h3>
-                            {/* <Badge
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {expense.category}
-                            </Badge> */}
-                            <span className="font-semibold text-cyan-600 text-sm sm:text-base flex-shrink-0">
+                    if (expense.category === "Settlement") {
+                      const match = expense.description.match(
+                        /Settlement from (.*) to (.*)/
+                      );
+                      const fromName = match ? match[1] : "Someone";
+                      const toName = match ? match[2] : "Someone";
+
+                      return (
+                        <div
+                          key={expense.id}
+                          className="border rounded-lg p-3 sm:p-4 bg-slate-50 border-slate-200"
+                        >
+                          <div className="flex items-center justify-end gap-4">
+                            <div className="flex items-center gap-3">
+                              <Handshake className="h-5 w-5 text-green-600 flex-shrink-0" />
+                              <p className="text-sm sm:text-base text-gray-800">
+                                <span className="font-semibold">{fromName}</span>{" "}
+                                paid{" "}
+                                <span className="font-semibold">{toName}</span>
+                              </p>
+                            </div>
+                            <span className="font-semibold text-green-700 text-sm sm:text-base flex-shrink-0">
                               {formatCurrency(expense.amount)}
                             </span>
                           </div>
-                          <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-2">
-                            Paid by {expense.paid_by_member?.name}
-                          </p>
-                          {/* <p className="text-xs text-gray-500">
-                            {new Date(expense.created_at).toLocaleDateString()} at{" "}
-                            {new Date(expense.created_at).toLocaleTimeString()}
-                          </p> */}
                         </div>
-                        <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingExpense(expense)}
-                              className="hover:bg-gray-100"
-                            >
-                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteExpense(expense.id)}
-                              className="text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
-                            </Button>
+                      );
+                    } else {
+                      const isExpanded = expandedExpenseIds.includes(
+                        expense.id
+                      );
+                      return (
+                        <div
+                          key={expense.id}
+                          className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50"
+                        >
+                          <div className="flex flex-row justify-between items-start gap-4">
+                            <div className="w-full flex-1 min-w-0">
+                              <div className="flex items-center">
+                                <h3 className="font-semibold text-sm sm:text-base truncate pr-2">
+                                  {expense.description}
+                                </h3>
+                                <span className="font-semibold text-cyan-600 text-sm sm:text-base flex-shrink-0">
+                                  {formatCurrency(expense.amount)}
+                                </span>
+                              </div>
+                              <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-2">
+                                Paid by {expense.paid_by_member?.name}
+                              </p>
+                            </div>
+                            <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEditingExpense(expense)}
+                                  className="hover:bg-gray-100"
+                                >
+                                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteExpense(expense.id)}
+                                  className="text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                                </Button>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                onClick={() =>
+                                  setExpandedExpenseIds((prev) =>
+                                    isExpanded
+                                      ? prev.filter((id) => id !== expense.id)
+                                      : [...prev, expense.id]
+                                  )
+                                }
+                                className="h-auto px-0 py-1 text-xs text-muted-foreground flex items-center"
+                              >
+                                {isExpanded ? "Hide breakdown" : "Show breakdown"}
+                                {isExpanded ? (
+                                  <ChevronUp className="h-3 w-3" />
+                                ) : (
+                                  <ChevronDown className="h-3 w-3" />
+                                )}
+                              </Button>
+                              <ExpenseSplitInfo
+                                expense={expense}
+                                members={members}
+                                isExpanded={isExpanded}
+                              />
+                            </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            onClick={() =>
-                              setExpandedExpenseIds((prev) =>
-                                isExpanded
-                                  ? prev.filter((id) => id !== expense.id)
-                                  : [...prev, expense.id]
-                              )
-                            }
-                            className="h-auto px-0 py-1 text-xs text-muted-foreground flex items-center"
-                          >
-                            {isExpanded ? "Hide breakdown" : "Show breakdown"}
-                            {isExpanded ? (
-                              <ChevronUp className="h-3 w-3" />
-                            ) : (
-                              <ChevronDown className="h-3 w-3" />
-                            )}
-                          </Button>
-                          <ExpenseSplitInfo
-                            expense={expense}
-                            members={members}
-                            isExpanded={isExpanded}
-                          />
                         </div>
-                      </div>
-                      </div>
-                    );
+                      );
+                    }
                   })}
                   {expenses.length === 0 && (
                     <div className="text-center py-6 sm:py-8">
@@ -490,7 +513,9 @@ export default function GroupPage() {
       <SimplifyDialog
         open={showSimplify}
         onOpenChange={setShowSimplify}
+        groupId={groupId}
         balances={balances}
+        onSuccess={loadData}
       />
 
       <EditGroupDialog
