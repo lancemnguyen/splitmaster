@@ -37,7 +37,7 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
       case "percentage":
         return "Split by %";
       case "amount":
-        return "Custom amounts";
+        return "Split by amount";
       case "equal":
       default:
         return "Split equally";
@@ -57,8 +57,8 @@ export function ExpenseSplitInfo({ expense, members }: ExpenseSplitInfoProps) {
 
   return (
     <div className="mt-2">
-      <div className="flex items-center gap-2 mb-2">
-        <Badge variant="secondary" className="text-xs">
+      <div className="flex w-full max-w-[240px] items-center justify-between mb-2">
+        <Badge variant="secondary" className="text-xs font-normal">
           {getSplitMethodDisplay()}
         </Badge>
         <Button

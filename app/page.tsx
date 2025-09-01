@@ -107,14 +107,14 @@ export default function HomePage() {
               height={128}
             />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-green-800">
+          <h1 className="text-2xl sm:text-3xl font-bold text-emerald-600">
             Splitmaster
           </h1>
           <p className="text-gray-600 mt-2 text-xs sm:text-sm">
             Split expenses easily
-            <span className="font-bold text-green-800"> • </span>
+            <span className="font-bold text-amber-600"> • </span>
             No sign-up required
-            <span className="font-bold text-green-800"> • </span>
+            <span className="font-bold text-amber-600"> • </span>
             Free to use
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function HomePage() {
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                 Start a new group & invite others
               </CardTitle>
               {/* <CardDescription className="text-sm">
@@ -171,7 +171,7 @@ export default function HomePage() {
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 Join existing group
               </CardTitle>
               {/* <CardDescription className="text-sm">

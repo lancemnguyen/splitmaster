@@ -247,7 +247,7 @@ export default function GroupPage() {
           {/* Balances */}
           <div className="lg:col-span-1">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-baseline justify-between px-6 pt-4 pb-3">
                 <CardTitle>Balances</CardTitle>
                 <Button
                   variant="outline"
@@ -291,7 +291,7 @@ export default function GroupPage() {
               </CardHeader> */}
               <CardContent>
                 <div className="text-center mt-6">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-cyan-600">
                     {formatCurrency(totalExpenses)}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Total expenses</p>
@@ -346,7 +346,7 @@ export default function GroupPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-green-800" />
                   <span>Items ({expenses.length})</span>
                 </CardTitle>
@@ -360,20 +360,19 @@ export default function GroupPage() {
                     >
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                          <div className="flex flex-row items-center gap-2 mb-1">
                             <h3 className="font-semibold text-sm sm:text-base truncate">
                               {expense.description}
                             </h3>
                             <Badge
                               variant="outline"
-                              className="self-start text-xs"
+                              className="text-xs"
                             >
                               {expense.category}
                             </Badge>
                           </div>
-                          <p className="text-xs sm:text-sm text-gray-600 mb-2">
-                            Paid by {expense.paid_by_member?.name} •{" "}
-                            {formatCurrency(expense.amount)}
+                          <p className="text-xs sm:text-sm text-cyan-600 mb-2">
+                            Paid by {expense.paid_by_member?.name} • <span className="font-semibold">{formatCurrency(expense.amount)}</span>
                           </p>
                           {/* <p className="text-xs text-gray-500">
                             {new Date(expense.created_at).toLocaleDateString()} at{" "}

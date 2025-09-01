@@ -251,7 +251,7 @@ export function ExpenseForm({
 
       {/* Split Configuration */}
       <div className="space-y-4">
-        <Label>How to split?</Label>
+        {/* <Label>How to split?</Label> */}
         <RadioGroup
           value={splitType}
           onValueChange={(value: any) => setSplitType(value)}
@@ -266,7 +266,7 @@ export function ExpenseForm({
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="amount" id="amount" />
-            <Label htmlFor="amount">Split by exact amounts</Label>
+            <Label htmlFor="amount">Split by custom amount</Label>
           </div>
         </RadioGroup>
       </div>
