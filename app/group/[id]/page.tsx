@@ -51,7 +51,7 @@ export default function GroupPage() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [showEditGroup, setShowEditGroup] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [expandedExpenseId, setExpandedExpenseId] = useState<string | null>(null);
+  const [expandedExpenseIds, setExpandedExpenseIds] = useState<string[]>([]);
 
   const loadData = async () => {
     setLoading(true);
@@ -369,7 +369,7 @@ export default function GroupPage() {
               <CardContent>
                 <div className="space-y-3 sm:space-y-4">
                   {expenses.map((expense) => {
-                    const isExpanded = expandedExpenseId === expense.id;
+                    const isExpanded = expandedExpenseIds.includes(expense.id);
                     return (
                       <div
                       key={expense.id}
@@ -421,7 +421,11 @@ export default function GroupPage() {
                           <Button
                             variant="ghost"
                             onClick={() =>
-                              setExpandedExpenseId(isExpanded ? null : expense.id)
+                              setExpandedExpenseIds((prev) =>
+                                isExpanded
+                                  ? prev.filter((id) => id !== expense.id)
+                                  : [...prev, expense.id]
+                              )
                             }
                             className="h-auto px-0 py-1 text-xs text-muted-foreground flex items-center"
                           >
