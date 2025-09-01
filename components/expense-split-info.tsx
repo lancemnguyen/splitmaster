@@ -45,12 +45,27 @@ export function ExpenseSplitInfo({
     return ((splitAmount / expense.amount) * 100).toFixed(1);
   };
 
+  const getSplitMethodDisplay = (method: string) => {
+    switch (method) {
+      case "percentage":
+        return "Split by %";
+      case "amount":
+        return "Split by amount";
+      case "equal":
+      default:
+        return "Split equally";
+    }
+  };
+
   if (!isExpanded) {
     return null;
   }
 
   return (
-    <div className="bg-gray-100 rounded-md p-3 text-xs mt-2 w-fit">
+    <div className="bg-gray-100 rounded-md p-3 text-xs w-fit">
+      <p className="text-gray-600 mb-2 font-bold underline">
+        {getSplitMethodDisplay(expense.split_method)}
+      </p>
       {loading ? (
         <div className="flex items-center justify-center py-2">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>

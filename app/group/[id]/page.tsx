@@ -392,14 +392,32 @@ export default function GroupPage() {
                             </span>
                           </div>
                           <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-2">
-                            Paid by {expense.paid_by_member?.name} •{" "}
-                            <Badge
-                              variant="secondary"
-                              className="font-normal"
-                            >
-                              {getSplitMethodDisplay(expense.split_method)}
-                            </Badge>
+                            Paid by {expense.paid_by_member?.name}
                           </p>
+                          {/* <p className="text-xs text-gray-500">
+                            {new Date(expense.created_at).toLocaleDateString()} at{" "}
+                            {new Date(expense.created_at).toLocaleTimeString()}
+                          </p> */}
+                        </div>
+                        <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingExpense(expense)}
+                              className="hover:bg-gray-100"
+                            >
+                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                            </Button>
+                          </div>
                           <Button
                             variant="ghost"
                             onClick={() =>
@@ -419,30 +437,6 @@ export default function GroupPage() {
                             members={members}
                             isExpanded={isExpanded}
                           />
-                          {/* <p className="text-xs text-gray-500">
-                            {new Date(expense.created_at).toLocaleDateString()} at{" "}
-                            {new Date(expense.created_at).toLocaleTimeString()}
-                          </p> */}
-                        </div>
-                        <div className="flex-shrink-0">
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingExpense(expense)}
-                              className="hover:bg-gray-100"
-                            >
-                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteExpense(expense.id)}
-                              className="text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
-                            </Button>
-                          </div>
                         </div>
                       </div>
                       </div>
