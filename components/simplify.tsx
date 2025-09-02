@@ -4,11 +4,8 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -329,8 +326,8 @@ export function SimplifyDialog({
         onOpenChange={(open) => !open && setTransactionToConfirm(null)}
       >
         <AlertDialogContent>
-          <AlertDialogHeader className="sm:text-center">
-            <AlertDialogTitle>Mark this transaction as settled?</AlertDialogTitle>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark transaction as settled?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone.
             </AlertDialogDescription>
@@ -345,22 +342,26 @@ export function SimplifyDialog({
               </span>
             </div>
           )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSettling !== null}>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setTransactionToConfirm(null)}
+              disabled={isSettling !== null}
+            >
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={handleConfirmSettle}
               disabled={isSettling !== null}
               className="bg-green-600 hover:bg-green-700"
-            > 
+            >
               {isSettling === transactionToConfirm?.index ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Confirm"
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+            </Button>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </>
