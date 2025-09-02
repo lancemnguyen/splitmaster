@@ -332,10 +332,6 @@ export function SimplifyDialog({
               <Check className="h-5 w-5 text-green-600" />
               Mark transaction as settled?
             </AlertDialogTitle>
-            <AlertDialogDescription className="flex items-center justify-center gap-1.5">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              This action cannot be undone.
-            </AlertDialogDescription>
           </AlertDialogHeader>
           {transactionToConfirm && (
             <div className="font-semibold bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-gray-800 dark:text-gray-200 text-center">
@@ -347,7 +343,11 @@ export function SimplifyDialog({
               </span>
             </div>
           )}
-          <div className="flex justify-end space-x-2 pt-4">
+          <AlertDialogDescription className="flex items-center justify-center gap-1">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            This action cannot be undone.
+          </AlertDialogDescription>
+          <div className="flex justify-end space-x-2 pt-2">
             <Button
               variant="outline"
               onClick={() => setTransactionToConfirm(null)}
