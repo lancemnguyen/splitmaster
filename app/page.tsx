@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Users, Plus, ArrowRight } from "lucide-react";
 import { createGroup, getGroupByCode } from "@/lib/database";
 import { toast } from "@/hooks/use-toast";
+import { BuyMeACoffee } from '@/components/buy-me-a-coffee';
 
 export default function HomePage() {
   const [groupName, setGroupName] = useState("");
@@ -208,6 +209,7 @@ export default function HomePage() {
         </div>
 
         <div className="text-center text-xs sm:text-sm text-gray-500">
+          <BuyMeACoffee />
           <p>© {new Date().getFullYear()} Lance Nguyen</p>
         </div>
       </div>
