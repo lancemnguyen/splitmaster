@@ -351,8 +351,9 @@ export function SimplifyDialog({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmSettle}
-              className="bg-green-600 hover:bg-green-700 flex items-center"
-            >
+              disabled={isSettling !== null}
+              className="bg-green-600 hover:bg-green-700"
+            > 
               {isSettling === transactionToConfirm?.index ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
