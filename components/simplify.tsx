@@ -193,7 +193,7 @@ export function SimplifyDialog({
                 </p>
               </div>
 
-              <p className="text-xs sm:text-sm text-muted-foreground px-1">
+              <p className="text-xs sm:text-sm text-muted-foreground px-1 text-right">
                 Click the checkmark to settle up.
               </p>
 
