@@ -3,6 +3,16 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -10,7 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Check, Loader2, TrendingDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { addSettlement } from "@/lib/database";
@@ -39,6 +48,10 @@ export function SimplifyDialog({
   onSuccess,
 }: SimplifyDialogProps) {
   const [isSettling, setIsSettling] = useState<number | null>(null);
+  const [transactionToConfirm, setTransactionToConfirm] = useState<{
+    transaction: Transaction;
+    index: number;
+  } | null>(null);
   const isMobile = useIsMobile();
 
   const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
@@ -84,6 +97,16 @@ export function SimplifyDialog({
       });
     }
     setIsSettling(null);
+  };
+
+  const handleConfirmSettle = async () => {
+    if (!transactionToConfirm) return;
+
+    await handleSettle(
+      transactionToConfirm.transaction,
+      transactionToConfirm.index
+    );
+    setTransactionToConfirm(null);
   };
 
   const formatCurrency = (amount: number) => {
@@ -146,8 +169,9 @@ export function SimplifyDialog({
   }, [balances]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
@@ -164,7 +188,7 @@ export function SimplifyDialog({
                     Optimized Result
                     {savings > 0 && (
                       <span className="text-yellow-700">
-                        {`: Saved ${savings} transaction${savings !== 1 ? "s" : ""}`}
+                        {`: Reduced by ${savings} transaction${savings !== 1 ? "s" : ""}`}
                       </span>
                     )}
                   </span>
@@ -177,7 +201,7 @@ export function SimplifyDialog({
               </div>
 
               <p className="text-xs sm:text-sm text-muted-foreground px-1">
-                Click the checkmark if you've completed the transaction.
+                Click the checkmark if you completed the payment.
               </p>
 
               <div className="space-y-3">
@@ -209,7 +233,9 @@ export function SimplifyDialog({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleSettle(transaction, index)}
+                      onClick={() =>
+                        setTransactionToConfirm({ transaction, index })
+                      }
                       disabled={isSettling !== null}
                       className="px-2.5"
                       aria-label={`Settle transaction from ${transaction.from} to ${transaction.to}`}
@@ -296,7 +322,45 @@ export function SimplifyDialog({
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog
+        open={!!transactionToConfirm}
+        onOpenChange={(open) => !open && setTransactionToConfirm(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark this transaction as settled?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {transactionToConfirm && (
+            <div className="font-semibold bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-gray-800 dark:text-gray-200 text-center">
+              {transactionToConfirm.transaction.from} pays{" "}
+              {transactionToConfirm.transaction.to}{" "}
+              <span className="font-bold">
+                {formatCurrency(transactionToConfirm.transaction.amount)}
+              </span>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSettling !== null}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmSettle}
+              disabled={isSettling !== null}
+            >
+              {isSettling === transactionToConfirm?.index ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Confirm"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
