@@ -336,7 +336,7 @@ export function SimplifyDialog({
           {transactionToConfirm && (
             <div className="font-semibold bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-gray-800 dark:text-gray-200 text-center">
               {transactionToConfirm.transaction.from}{" "}
-              <span className="font-normal">pays</span>{" "}
+              <span className="font-normal">paid</span>{" "}
               {transactionToConfirm.transaction.to}
               <span className="font-bold text-green-600 ml-4">
                 {formatCurrency(transactionToConfirm.transaction.amount)}
