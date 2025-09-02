@@ -171,25 +171,21 @@ export function SimplifyDialog({
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <TrendingDown className="h-5 w-5" />
-            Simplified Transactions
+            <TrendingDown className="h-5 w-5 text-emerald-600" />
+            {savings > 0 ? (
+              <span>
+                {`Reduced by ${savings} transaction${savings !== 1 ? "s" : ""}`}
+              </span>
+            ) : (
+              "Simplified Transactions"
+            )}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {transactions.length > 0 ? (
             <>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <div className="mb-2">
-                  <span className="text-sm font-medium text-yellow-900">
-                    Optimized Result
-                    {savings > 0 && (
-                      <span className="text-yellow-700">
-                        {`: Reduced by ${savings} transaction${savings !== 1 ? "s" : ""}`}
-                      </span>
-                    )}
-                  </span>
-                </div>
+              <div className="bg-yellow-100/60 p-3 rounded-lg border border-yellow-200/80">
                 <p className="text-xs sm:text-sm text-yellow-700">
                   {transactions.length} transaction
                   {transactions.length !== 1 ? "s" : ""} needed to settle all
@@ -327,7 +323,10 @@ export function SimplifyDialog({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark transaction as settled?</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-green-600" />
+              Mark transaction as settled?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone.
             </AlertDialogDescription>
