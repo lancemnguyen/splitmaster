@@ -16,8 +16,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Check, Loader2, TrendingDown } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  Loader2,
+  TrendingDown,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { addSettlement } from "@/lib/database";
 import { toast } from "@/hooks/use-toast";
@@ -322,12 +327,13 @@ export function SimplifyDialog({
         onOpenChange={(open) => !open && setTransactionToConfirm(null)}
       >
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
+          <AlertDialogHeader className="text-center">
+            <AlertDialogTitle className="flex items-center justify-center gap-2">
               <Check className="h-5 w-5 text-green-600" />
               Mark transaction as settled?
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="flex items-center justify-center gap-1.5">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
