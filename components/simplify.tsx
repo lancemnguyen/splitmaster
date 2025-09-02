@@ -329,7 +329,7 @@ export function SimplifyDialog({
         onOpenChange={(open) => !open && setTransactionToConfirm(null)}
       >
         <AlertDialogContent>
-          <AlertDialogHeader>
+          <AlertDialogHeader className="sm:text-center">
             <AlertDialogTitle>Mark this transaction as settled?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone.
@@ -337,20 +337,22 @@ export function SimplifyDialog({
           </AlertDialogHeader>
           {transactionToConfirm && (
             <div className="font-semibold bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-gray-800 dark:text-gray-200 text-center">
-              {transactionToConfirm.transaction.from} pays{" "}
-              {transactionToConfirm.transaction.to}{" "}
-              <span className="font-bold">
+              {transactionToConfirm.transaction.from}{" "}
+              <span className="font-normal">pays</span>{" "}
+              {transactionToConfirm.transaction.to}
+              <span className="font-bold text-green-600 ml-4">
                 {formatCurrency(transactionToConfirm.transaction.amount)}
               </span>
             </div>
           )}
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-row justify-end space-x-2">
             <AlertDialogCancel disabled={isSettling !== null}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmSettle}
               disabled={isSettling !== null}
+              className="bg-green-600 hover:bg-green-700"
             >
               {isSettling === transactionToConfirm?.index ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
