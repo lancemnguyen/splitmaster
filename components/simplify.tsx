@@ -201,7 +201,7 @@ export function SimplifyDialog({
               </div>
 
               <p className="text-xs sm:text-sm text-muted-foreground px-1">
-                Click the checkmark if you completed the payment.
+                Click the checkmark to settle up.
               </p>
 
               <div className="space-y-3">
