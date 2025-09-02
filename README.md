@@ -1,4 +1,4 @@
-# Split master
+# Splitmaster
 
 A modern, intuitive application for splitting bills and expenses with friends and family.
 

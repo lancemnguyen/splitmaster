@@ -345,7 +345,7 @@ export function SimplifyDialog({
               </span>
             </div>
           )}
-          <AlertDialogFooter className="flex-row justify-end space-x-2">
+          <AlertDialogFooter>
             <AlertDialogCancel disabled={isSettling !== null}>
               Cancel
             </AlertDialogCancel>
