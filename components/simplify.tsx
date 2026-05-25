@@ -38,7 +38,9 @@ interface SimplifyDialogProps {
 
 interface Transaction {
   from: string;
+  fromId: string;
   to: string;
+  toId: string;
   amount: number;
 }
 
@@ -59,31 +61,13 @@ export function SimplifyDialog({
   const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
   const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
 
-  const membersMap = useMemo(() => {
-    const map = new Map<string, string>();
-    balances.forEach((b) => map.set(b.member_name, b.member_id));
-    return map;
-  }, [balances]);
-
   const handleSettle = async (transaction: Transaction, index: number) => {
     setIsSettling(index);
-    const fromMemberId = membersMap.get(transaction.from);
-    const toMemberId = membersMap.get(transaction.to);
-
-    if (!fromMemberId || !toMemberId) {
-      toast({
-        title: "Error",
-        description: "Could not find member information to create settlement.",
-        variant: "destructive",
-      });
-      setIsSettling(null);
-      return;
-    }
 
     const settlement = await addSettlement({
       groupId,
-      fromMemberId,
-      toMemberId,
+      fromMemberId: transaction.fromId,
+      toMemberId: transaction.toId,
       amount: transaction.amount,
     });
 
@@ -144,21 +128,20 @@ export function SimplifyDialog({
       const transactionAmount = Math.min(creditor.balance, debtor.balance);
 
       if (transactionAmount > 0.01) {
-        // Only create transaction if amount is significant
         transactions.push({
           from: debtor.member_name,
+          fromId: debtor.member_id,
           to: creditor.member_name,
+          toId: creditor.member_id,
           amount: transactionAmount,
         });
 
-        // Update balances
         creditor.balance -= transactionAmount;
         debtor.balance -= transactionAmount;
       }
 
-      // Move to next creditor or debtor if current one is settled
-      if (creditor.balance < 0.01) creditorIndex++;
-      if (debtor.balance < 0.01) debtorIndex++;
+      if (creditor.balance <= 0.01) creditorIndex++;
+      if (debtor.balance <= 0.01) debtorIndex++;
     }
 
     // Calculate savings (naive approach would be each debtor pays each creditor they owe)

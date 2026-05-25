@@ -91,9 +91,13 @@ export function ExpenseForm({
     const splits: { memberId: string; amount: number }[] = [];
 
     if (splitType === "equal") {
-      const splitAmount = totalAmount / selectedMembers.length;
-      selectedMembers.forEach((memberId) => {
-        splits.push({ memberId, amount: splitAmount });
+      const n = selectedMembers.length;
+      const totalCents = Math.round(totalAmount * 100);
+      const baseAmountCents = Math.floor(totalCents / n);
+      const remainderCents = totalCents - baseAmountCents * n;
+      selectedMembers.forEach((memberId, i) => {
+        const cents = i < remainderCents ? baseAmountCents + 1 : baseAmountCents;
+        splits.push({ memberId, amount: cents / 100 });
       });
     } else if (splitType === "percentage") {
       selectedMembers.forEach((memberId) => {

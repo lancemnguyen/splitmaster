@@ -33,7 +33,10 @@ export async function getGroupByCode(code: string): Promise<Group | null> {
     .eq("code", code.toUpperCase())
     .single();
 
-  if (error) return null;
+  if (error) {
+    console.error("Error fetching group by code:", error);
+    return null;
+  }
   return data;
 }
 
@@ -355,28 +358,39 @@ export async function getBalances(groupId: string): Promise<Balance[]> {
 
   const balances: { [memberId: string]: number } = {};
 
-  // Initialize balances
   members.forEach((member) => {
     balances[member.id] = 0;
   });
 
-  // Calculate balances
-  for (const expense of expenses) {
-    // Add amount paid
-    if (balances[expense.paid_by] !== undefined) {
-      balances[expense.paid_by] += expense.amount;
-    }
+  if (expenses.length > 0) {
+    const expenseIds = expenses.map((e) => e.id);
+    const { data: allSplits } = await supabase
+      .from("expense_splits")
+      .select("id, expense_id, member_id, amount")
+      .in("expense_id", expenseIds);
 
-    // Subtract splits
-    const splits = await getExpenseSplits(expense.id);
-    splits.forEach((split) => {
-      if (balances[split.member_id] !== undefined) {
-        balances[split.member_id] -= split.amount;
+    const splitsByExpenseId: { [expenseId: string]: ExpenseSplit[] } = {};
+    allSplits?.forEach((split) => {
+      if (!splitsByExpenseId[split.expense_id]) {
+        splitsByExpenseId[split.expense_id] = [];
       }
+      splitsByExpenseId[split.expense_id].push(split);
     });
+
+    for (const expense of expenses) {
+      if (balances[expense.paid_by] !== undefined) {
+        balances[expense.paid_by] += expense.amount;
+      }
+
+      const splits = splitsByExpenseId[expense.id] ?? [];
+      splits.forEach((split) => {
+        if (balances[split.member_id] !== undefined) {
+          balances[split.member_id] -= split.amount;
+        }
+      });
+    }
   }
 
-  // Adjust balances with settlements
   settlements.forEach((settlement) => {
     if (balances[settlement.from_member_id] !== undefined) {
       balances[settlement.from_member_id] += settlement.amount;
