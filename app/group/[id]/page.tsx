@@ -533,9 +533,7 @@ export default function GroupPage() {
       <SimplifyDialog
         open={showSimplify}
         onOpenChange={setShowSimplify}
-        groupId={groupId}
         balances={balances}
-        onSuccess={loadData}
       />
 
       <EditGroupDialog

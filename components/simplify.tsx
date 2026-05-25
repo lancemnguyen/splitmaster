@@ -1,14 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -16,31 +9,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";import {
-  AlertTriangle,
-  ArrowRight,
-  Check,
-  Loader2,
-  TrendingDown,
-} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, TrendingDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { addSettlement } from "@/lib/database";
-import { toast } from "@/hooks/use-toast";
 import type { Balance } from "@/lib/supabase";
 
 interface SimplifyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   balances: Balance[];
-  groupId: string;
-  onSuccess: () => void;
 }
 
 interface Transaction {
   from: string;
-  fromId: string;
   to: string;
-  toId: string;
   amount: number;
 }
 
@@ -48,60 +30,11 @@ export function SimplifyDialog({
   open,
   onOpenChange,
   balances,
-  groupId,
-  onSuccess,
 }: SimplifyDialogProps) {
-  const [isSettling, setIsSettling] = useState<number | null>(null);
-  const [transactionToConfirm, setTransactionToConfirm] = useState<{
-    transaction: Transaction;
-    index: number;
-  } | null>(null);
-  const [settledPairs, setSettledPairs] = useState<Set<string>>(new Set());
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    if (open) setSettledPairs(new Set());
-  }, [open]);
 
   const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
   const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
-
-  const handleSettle = async (transaction: Transaction, index: number) => {
-    setIsSettling(index);
-
-    const settlement = await addSettlement({
-      groupId,
-      fromMemberId: transaction.fromId,
-      toMemberId: transaction.toId,
-      amount: transaction.amount,
-    });
-
-    if (settlement) {
-      setSettledPairs((prev) =>
-        new Set([...prev, `${transaction.fromId}|${transaction.toId}`])
-      );
-      toast({ title: "Success", description: "Settlement recorded." });
-      onSuccess();
-      onOpenChange(false);
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to record settlement.",
-        variant: "destructive",
-      });
-    }
-    setIsSettling(null);
-  };
-
-  const handleConfirmSettle = async () => {
-    if (!transactionToConfirm) return;
-
-    await handleSettle(
-      transactionToConfirm.transaction,
-      transactionToConfirm.index
-    );
-    setTransactionToConfirm(null);
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -111,36 +44,30 @@ export function SimplifyDialog({
   };
 
   const { transactions, savings } = useMemo(() => {
-    // Calculate simplified transactions using greedy algorithm
-    // Create working copies of balances
     const creditors = balances
-      .filter((b) => b.balance > 0.01) // Only include significant positive balances
+      .filter((b) => b.balance > 0.01)
       .map((b) => ({ ...b }))
-      .sort((a, b) => b.balance - a.balance); // Sort by balance descending
+      .sort((a, b) => b.balance - a.balance);
 
     const debtors = balances
-      .filter((b) => b.balance < -0.01) // Only include significant negative balances
-      .map((b) => ({ ...b, balance: Math.abs(b.balance) })) // Make balance positive for easier calculation
-      .sort((a, b) => b.balance - a.balance); // Sort by debt descending
+      .filter((b) => b.balance < -0.01)
+      .map((b) => ({ ...b, balance: Math.abs(b.balance) }))
+      .sort((a, b) => b.balance - a.balance);
 
     const transactions: Transaction[] = [];
     let creditorIndex = 0;
     let debtorIndex = 0;
 
-    // Greedy algorithm to minimize transactions
     while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
       const creditor = creditors[creditorIndex];
       const debtor = debtors[debtorIndex];
 
-      // Calculate the transaction amount (minimum of what's owed and what's due)
       const transactionAmount = Math.min(creditor.balance, debtor.balance);
 
       if (transactionAmount > 0.01) {
         transactions.push({
           from: debtor.member_name,
-          fromId: debtor.member_id,
           to: creditor.member_name,
-          toId: creditor.member_id,
           amount: transactionAmount,
         });
 
@@ -152,7 +79,6 @@ export function SimplifyDialog({
       if (debtor.balance <= 0.01) debtorIndex++;
     }
 
-    // Calculate savings (naive approach would be each debtor pays each creditor they owe)
     const totalDebtors = balances.filter((b) => b.balance < -0.01).length;
     const totalCreditors = balances.filter((b) => b.balance > 0.01).length;
     const naiveTransactions = totalDebtors * totalCreditors;
@@ -161,14 +87,9 @@ export function SimplifyDialog({
     return { transactions, savings };
   }, [balances]);
 
-  const visibleTransactions = transactions.filter(
-    (t) => !settledPairs.has(`${t.fromId}|${t.toId}`)
-  );
-
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5 text-emerald-600" />
@@ -183,63 +104,41 @@ export function SimplifyDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {visibleTransactions.length > 0 ? (
+          {transactions.length > 0 ? (
             <>
               <div className="bg-yellow-100/60 p-3 rounded-lg border border-yellow-200/80">
                 <p className="text-xs sm:text-sm text-yellow-700">
-                  {visibleTransactions.length} transaction
-                  {visibleTransactions.length !== 1 ? "s" : ""} needed to settle all
+                  {transactions.length} transaction
+                  {transactions.length !== 1 ? "s" : ""} needed to settle all
                   debts
                 </p>
               </div>
 
-              <p className="text-xs sm:text-sm text-muted-foreground px-1 text-right">
-                Click the checkmark to settle up after all expenses are in and you have paid.
-              </p>
-
               <div className="space-y-3">
-                {visibleTransactions.map((transaction, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Card className="flex-grow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            <span className="font-medium text-sm">
-                              {transaction.from}
-                            </span>
-                            <div className="flex flex-col items-center">
-                              <ArrowRight className="h-4 w-12 text-gray-400" />
-                              <span className="text-xs text-gray-500 -mt-1">
-                                pays
-                              </span>
-                            </div>
-                            <span className="font-medium text-sm">
-                              {transaction.to}
+                {transactions.map((transaction, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium text-sm">
+                            {transaction.from}
+                          </span>
+                          <div className="flex flex-col items-center">
+                            <ArrowRight className="h-4 w-12 text-gray-400" />
+                            <span className="text-xs text-gray-500 -mt-1">
+                              pays
                             </span>
                           </div>
-                          <div className="text-lg font-semibold text-green-600">
-                            {formatCurrency(transaction.amount)}
-                          </div>
+                          <span className="font-medium text-sm">
+                            {transaction.to}
+                          </span>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        setTransactionToConfirm({ transaction, index })
-                      }
-                      disabled={isSettling !== null}
-                      className="px-2.5"
-                      aria-label={`Settle transaction from ${transaction.from} to ${transaction.to}`}
-                    >
-                      {isSettling === index ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Check className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
+                        <div className="text-lg font-semibold text-green-600">
+                          {formatCurrency(transaction.amount)}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
 
@@ -258,9 +157,7 @@ export function SimplifyDialog({
               <h3 className="font-medium text-gray-900 mb-2">
                 All Settled Up!
               </h3>
-              <p className="text-gray-500">
-                Everyone's balances are even.
-              </p>
+              <p className="text-gray-500">Everyone's balances are even.</p>
               <p className="text-sm text-gray-400 mt-1">
                 No transactions needed.
               </p>
@@ -315,55 +212,7 @@ export function SimplifyDialog({
             </div>
           </div>
         </div>
-        </DialogContent>
-      </Dialog>
-      <AlertDialog
-        open={!!transactionToConfirm}
-        onOpenChange={(open) => !open && setTransactionToConfirm(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader className="text-center">
-            <AlertDialogTitle className="flex items-center justify-center gap-2">
-              <Check className="h-5 w-5 text-green-600" />
-              Mark transaction as settled?
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          {transactionToConfirm && (
-            <div className="font-semibold bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-gray-800 dark:text-gray-200 text-center">
-              {transactionToConfirm.transaction.from}{" "}
-              <span className="font-normal">paid</span>{" "}
-              {transactionToConfirm.transaction.to}
-              <span className="font-bold text-green-600 ml-4">
-                {formatCurrency(transactionToConfirm.transaction.amount)}
-              </span>
-            </div>
-          )}
-          <AlertDialogDescription className="flex items-center justify-center gap-1">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            This action cannot be undone.
-          </AlertDialogDescription>
-          <div className="flex justify-end space-x-2 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setTransactionToConfirm(null)}
-              disabled={isSettling !== null}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmSettle}
-              disabled={isSettling !== null}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isSettling === transactionToConfirm?.index ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Confirm"
-              )}
-            </Button>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }
