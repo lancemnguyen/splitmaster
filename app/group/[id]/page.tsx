@@ -24,7 +24,8 @@ import {
   getMembers,
   getExpenses,
   getSettlements,
-  getBalances,
+  getSplitsForExpenses,
+  computeBalances,
   deleteExpense,
   removeMember,
 } from "@/lib/database";
@@ -60,14 +61,16 @@ export default function GroupPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [groupData, membersData, expensesData, settlementsData, balancesData] =
+      const [groupData, membersData, expensesData, settlementsData] =
         await Promise.all([
           getGroup(groupId),
           getMembers(groupId),
           getExpenses(groupId),
           getSettlements(groupId),
-          getBalances(groupId),
         ]);
+
+      const splitsData = await getSplitsForExpenses(expensesData.map((e) => e.id));
+      const balancesData = computeBalances(membersData, expensesData, splitsData, settlementsData);
 
       setGroup(groupData);
       setMembers(membersData);
@@ -75,8 +78,6 @@ export default function GroupPage() {
       setSettlements(settlementsData);
       setBalances(balancesData);
 
-      // Calculate total expenses
-      // Settlements are now separate, so no need to filter them out
       const total = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
       setTotalExpenses(total);
     } catch (error) {

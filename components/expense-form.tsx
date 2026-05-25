@@ -100,10 +100,18 @@ export function ExpenseForm({
         splits.push({ memberId, amount: cents / 100 });
       });
     } else if (splitType === "percentage") {
-      selectedMembers.forEach((memberId) => {
+      const totalCents = Math.round(totalAmount * 100);
+      let allocatedCents = 0;
+      selectedMembers.forEach((memberId, i) => {
         const percentage = Number.parseFloat(customSplits[memberId] || "0");
-        const splitAmount = (totalAmount * percentage) / 100;
-        splits.push({ memberId, amount: splitAmount });
+        let cents: number;
+        if (i === selectedMembers.length - 1) {
+          cents = totalCents - allocatedCents;
+        } else {
+          cents = Math.round((totalCents * percentage) / 100);
+          allocatedCents += cents;
+        }
+        splits.push({ memberId, amount: cents / 100 });
       });
     } else if (splitType === "amount") {
       selectedMembers.forEach((memberId) => {
@@ -124,7 +132,7 @@ export function ExpenseForm({
       const totalPercentage = selectedMembers.reduce((sum, memberId) => {
         return sum + Number.parseFloat(customSplits[memberId] || "0");
       }, 0);
-      return Math.abs(totalPercentage - 100) < 0.01;
+      return Math.abs(totalPercentage - 100) < 0.01 && Math.abs(totalSplit - totalAmount) < 0.01;
     } else if (splitType === "amount") {
       return Math.abs(totalSplit - totalAmount) < 0.01;
     }

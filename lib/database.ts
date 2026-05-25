@@ -348,47 +348,46 @@ export async function addSettlement({
   return data;
 }
 
-// Balance calculations
-export async function getBalances(groupId: string): Promise<Balance[]> {
-  const [members, expenses, settlements] = await Promise.all([
-    getMembers(groupId),
-    getExpenses(groupId),
-    getSettlements(groupId),
-  ]);
+export async function getSplitsForExpenses(
+  expenseIds: string[]
+): Promise<ExpenseSplit[]> {
+  if (expenseIds.length === 0) return [];
+  const { data } = await supabase
+    .from("expense_splits")
+    .select("id, expense_id, member_id, amount")
+    .in("expense_id", expenseIds);
+  return data || [];
+}
 
+export function computeBalances(
+  members: Member[],
+  expenses: Expense[],
+  splits: ExpenseSplit[],
+  settlements: Settlement[]
+): Balance[] {
   const balances: { [memberId: string]: number } = {};
-
   members.forEach((member) => {
     balances[member.id] = 0;
   });
 
-  if (expenses.length > 0) {
-    const expenseIds = expenses.map((e) => e.id);
-    const { data: allSplits } = await supabase
-      .from("expense_splits")
-      .select("id, expense_id, member_id, amount")
-      .in("expense_id", expenseIds);
-
-    const splitsByExpenseId: { [expenseId: string]: ExpenseSplit[] } = {};
-    allSplits?.forEach((split) => {
-      if (!splitsByExpenseId[split.expense_id]) {
-        splitsByExpenseId[split.expense_id] = [];
-      }
-      splitsByExpenseId[split.expense_id].push(split);
-    });
-
-    for (const expense of expenses) {
-      if (balances[expense.paid_by] !== undefined) {
-        balances[expense.paid_by] += expense.amount;
-      }
-
-      const splits = splitsByExpenseId[expense.id] ?? [];
-      splits.forEach((split) => {
-        if (balances[split.member_id] !== undefined) {
-          balances[split.member_id] -= split.amount;
-        }
-      });
+  const splitsByExpenseId: { [expenseId: string]: ExpenseSplit[] } = {};
+  splits.forEach((split) => {
+    if (!splitsByExpenseId[split.expense_id]) {
+      splitsByExpenseId[split.expense_id] = [];
     }
+    splitsByExpenseId[split.expense_id].push(split);
+  });
+
+  for (const expense of expenses) {
+    if (balances[expense.paid_by] !== undefined) {
+      balances[expense.paid_by] += expense.amount;
+    }
+    const expenseSplits = splitsByExpenseId[expense.id] ?? [];
+    expenseSplits.forEach((split) => {
+      if (balances[split.member_id] !== undefined) {
+        balances[split.member_id] -= split.amount;
+      }
+    });
   }
 
   settlements.forEach((settlement) => {
@@ -405,4 +404,15 @@ export async function getBalances(groupId: string): Promise<Balance[]> {
     member_name: member.name,
     balance: balances[member.id] || 0,
   }));
+}
+
+// Balance calculations
+export async function getBalances(groupId: string): Promise<Balance[]> {
+  const [members, expenses, settlements] = await Promise.all([
+    getMembers(groupId),
+    getExpenses(groupId),
+    getSettlements(groupId),
+  ]);
+  const splits = await getSplitsForExpenses(expenses.map((e) => e.id));
+  return computeBalances(members, expenses, splits, settlements);
 }
