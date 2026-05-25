@@ -19,19 +19,17 @@ export function ExpenseSplitInfo({
   const [loading, setLoading] = useState(false);
 
   const loadSplits = async () => {
-    if (splits.length === 0) {
-      setLoading(true);
-      const expenseSplits = await getExpenseSplits(expense.id);
-      setSplits(expenseSplits);
-      setLoading(false);
-    }
+    setLoading(true);
+    const expenseSplits = await getExpenseSplits(expense.id);
+    setSplits(expenseSplits);
+    setLoading(false);
   };
 
   useEffect(() => {
     if (isExpanded) {
       loadSplits();
     }
-  }, [isExpanded]);
+  }, [isExpanded, expense.updated_at]);
   
 
   const formatCurrency = (amount: number) => {

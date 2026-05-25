@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   AlertDialog,
@@ -38,7 +38,9 @@ interface SimplifyDialogProps {
 
 interface Transaction {
   from: string;
+  fromId: string;
   to: string;
+  toId: string;
   amount: number;
 }
 
@@ -54,40 +56,30 @@ export function SimplifyDialog({
     transaction: Transaction;
     index: number;
   } | null>(null);
+  const [settledPairs, setSettledPairs] = useState<Set<string>>(new Set());
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (open) setSettledPairs(new Set());
+  }, [open]);
 
   const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
   const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
 
-  const membersMap = useMemo(() => {
-    const map = new Map<string, string>();
-    balances.forEach((b) => map.set(b.member_name, b.member_id));
-    return map;
-  }, [balances]);
-
   const handleSettle = async (transaction: Transaction, index: number) => {
     setIsSettling(index);
-    const fromMemberId = membersMap.get(transaction.from);
-    const toMemberId = membersMap.get(transaction.to);
-
-    if (!fromMemberId || !toMemberId) {
-      toast({
-        title: "Error",
-        description: "Could not find member information to create settlement.",
-        variant: "destructive",
-      });
-      setIsSettling(null);
-      return;
-    }
 
     const settlement = await addSettlement({
       groupId,
-      fromMemberId,
-      toMemberId,
+      fromMemberId: transaction.fromId,
+      toMemberId: transaction.toId,
       amount: transaction.amount,
     });
 
     if (settlement) {
+      setSettledPairs((prev) =>
+        new Set([...prev, `${transaction.fromId}|${transaction.toId}`])
+      );
       toast({ title: "Success", description: "Settlement recorded." });
       onSuccess();
       onOpenChange(false);
@@ -144,21 +136,20 @@ export function SimplifyDialog({
       const transactionAmount = Math.min(creditor.balance, debtor.balance);
 
       if (transactionAmount > 0.01) {
-        // Only create transaction if amount is significant
         transactions.push({
           from: debtor.member_name,
+          fromId: debtor.member_id,
           to: creditor.member_name,
+          toId: creditor.member_id,
           amount: transactionAmount,
         });
 
-        // Update balances
         creditor.balance -= transactionAmount;
         debtor.balance -= transactionAmount;
       }
 
-      // Move to next creditor or debtor if current one is settled
-      if (creditor.balance < 0.01) creditorIndex++;
-      if (debtor.balance < 0.01) debtorIndex++;
+      if (creditor.balance <= 0.01) creditorIndex++;
+      if (debtor.balance <= 0.01) debtorIndex++;
     }
 
     // Calculate savings (naive approach would be each debtor pays each creditor they owe)
@@ -169,6 +160,10 @@ export function SimplifyDialog({
 
     return { transactions, savings };
   }, [balances]);
+
+  const visibleTransactions = transactions.filter(
+    (t) => !settledPairs.has(`${t.fromId}|${t.toId}`)
+  );
 
   return (
     <>
@@ -188,12 +183,12 @@ export function SimplifyDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {transactions.length > 0 ? (
+          {visibleTransactions.length > 0 ? (
             <>
               <div className="bg-yellow-100/60 p-3 rounded-lg border border-yellow-200/80">
                 <p className="text-xs sm:text-sm text-yellow-700">
-                  {transactions.length} transaction
-                  {transactions.length !== 1 ? "s" : ""} needed to settle all
+                  {visibleTransactions.length} transaction
+                  {visibleTransactions.length !== 1 ? "s" : ""} needed to settle all
                   debts
                 </p>
               </div>
@@ -203,7 +198,7 @@ export function SimplifyDialog({
               </p>
 
               <div className="space-y-3">
-                {transactions.map((transaction, index) => (
+                {visibleTransactions.map((transaction, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Card className="flex-grow">
                       <CardContent className="p-4">

@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -91,15 +92,27 @@ export function ExpenseForm({
     const splits: { memberId: string; amount: number }[] = [];
 
     if (splitType === "equal") {
-      const splitAmount = totalAmount / selectedMembers.length;
-      selectedMembers.forEach((memberId) => {
-        splits.push({ memberId, amount: splitAmount });
+      const n = selectedMembers.length;
+      const totalCents = Math.round(totalAmount * 100);
+      const baseAmountCents = Math.floor(totalCents / n);
+      const remainderCents = totalCents - baseAmountCents * n;
+      selectedMembers.forEach((memberId, i) => {
+        const cents = i < remainderCents ? baseAmountCents + 1 : baseAmountCents;
+        splits.push({ memberId, amount: cents / 100 });
       });
     } else if (splitType === "percentage") {
-      selectedMembers.forEach((memberId) => {
+      const totalCents = Math.round(totalAmount * 100);
+      let allocatedCents = 0;
+      selectedMembers.forEach((memberId, i) => {
         const percentage = Number.parseFloat(customSplits[memberId] || "0");
-        const splitAmount = (totalAmount * percentage) / 100;
-        splits.push({ memberId, amount: splitAmount });
+        let cents: number;
+        if (i === selectedMembers.length - 1) {
+          cents = totalCents - allocatedCents;
+        } else {
+          cents = Math.round((totalCents * percentage) / 100);
+          allocatedCents += cents;
+        }
+        splits.push({ memberId, amount: cents / 100 });
       });
     } else if (splitType === "amount") {
       selectedMembers.forEach((memberId) => {
@@ -120,7 +133,7 @@ export function ExpenseForm({
       const totalPercentage = selectedMembers.reduce((sum, memberId) => {
         return sum + Number.parseFloat(customSplits[memberId] || "0");
       }, 0);
-      return Math.abs(totalPercentage - 100) < 0.01;
+      return Math.abs(totalPercentage - 100) < 0.01 && Math.abs(totalSplit - totalAmount) < 0.01;
     } else if (splitType === "amount") {
       return Math.abs(totalSplit - totalAmount) < 0.01;
     }
@@ -129,18 +142,34 @@ export function ExpenseForm({
   };
 
   const handleSubmit = () => {
-    if (
-      !description.trim() ||
-      !amount ||
-      !paidBy ||
-      selectedMembers.length === 0
-    ) {
-      // Parent component will show toast
+    if (!description.trim() || !paidBy || selectedMembers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const parsedAmount = Number.parseFloat(amount);
+    if (!amount || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount greater than zero",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!validateSplits()) {
-      // Parent component will show toast
+      toast({
+        title: "Error",
+        description:
+          splitType === "percentage"
+            ? "Percentages must add up to 100%"
+            : "Split amounts must equal the total expense amount",
+        variant: "destructive",
+      });
       return;
     }
 
