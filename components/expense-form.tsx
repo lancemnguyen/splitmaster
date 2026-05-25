@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -141,18 +142,34 @@ export function ExpenseForm({
   };
 
   const handleSubmit = () => {
-    if (
-      !description.trim() ||
-      !amount ||
-      !paidBy ||
-      selectedMembers.length === 0
-    ) {
-      // Parent component will show toast
+    if (!description.trim() || !paidBy || selectedMembers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const parsedAmount = Number.parseFloat(amount);
+    if (!amount || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount greater than zero",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!validateSplits()) {
-      // Parent component will show toast
+      toast({
+        title: "Error",
+        description:
+          splitType === "percentage"
+            ? "Percentages must add up to 100%"
+            : "Split amounts must equal the total expense amount",
+        variant: "destructive",
+      });
       return;
     }
 

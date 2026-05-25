@@ -10,20 +10,24 @@ import type {
 
 // Group operations
 export async function createGroup(name: string): Promise<Group | null> {
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const { data, error } = await supabase
+      .from("groups")
+      .insert({ name, code })
+      .select()
+      .single();
 
-  const { data, error } = await supabase
-    .from("groups")
-    .insert({ name, code })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creating group:", error);
-    return null;
+    if (!error) return data;
+    // 23505 = unique_violation; retry with a new code
+    if (error.code !== "23505") {
+      console.error("Error creating group:", error);
+      return null;
+    }
   }
 
-  return data;
+  console.error("Failed to generate a unique group code after 5 attempts");
+  return null;
 }
 
 export async function getGroupByCode(code: string): Promise<Group | null> {
@@ -282,10 +286,14 @@ export async function updateExpense(
     return false;
   }
 
-  // Delete existing splits
+  // Save existing splits so we can restore them if the new insert fails
+  const { data: oldSplits } = await supabase
+    .from("expense_splits")
+    .select("member_id, amount")
+    .eq("expense_id", expenseId);
+
   await supabase.from("expense_splits").delete().eq("expense_id", expenseId);
 
-  // Add new splits
   const splitData = splits.map((split) => ({
     expense_id: expenseId,
     member_id: split.memberId,
@@ -298,6 +306,15 @@ export async function updateExpense(
 
   if (splitError) {
     console.error("Error updating splits:", splitError);
+    if (oldSplits && oldSplits.length > 0) {
+      await supabase.from("expense_splits").insert(
+        oldSplits.map((s) => ({
+          expense_id: expenseId,
+          member_id: s.member_id,
+          amount: s.amount,
+        }))
+      );
+    }
     return false;
   }
 

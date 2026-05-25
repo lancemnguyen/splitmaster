@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   AlertDialog,
@@ -56,7 +56,12 @@ export function SimplifyDialog({
     transaction: Transaction;
     index: number;
   } | null>(null);
+  const [settledPairs, setSettledPairs] = useState<Set<string>>(new Set());
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (open) setSettledPairs(new Set());
+  }, [open]);
 
   const venmoLink = isMobile ? "venmo://" : "https://venmo.com";
   const paypalLink = isMobile ? "paypal://" : "https://paypal.com";
@@ -72,6 +77,9 @@ export function SimplifyDialog({
     });
 
     if (settlement) {
+      setSettledPairs((prev) =>
+        new Set([...prev, `${transaction.fromId}|${transaction.toId}`])
+      );
       toast({ title: "Success", description: "Settlement recorded." });
       onSuccess();
       onOpenChange(false);
@@ -153,6 +161,10 @@ export function SimplifyDialog({
     return { transactions, savings };
   }, [balances]);
 
+  const visibleTransactions = transactions.filter(
+    (t) => !settledPairs.has(`${t.fromId}|${t.toId}`)
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,12 +183,12 @@ export function SimplifyDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {transactions.length > 0 ? (
+          {visibleTransactions.length > 0 ? (
             <>
               <div className="bg-yellow-100/60 p-3 rounded-lg border border-yellow-200/80">
                 <p className="text-xs sm:text-sm text-yellow-700">
-                  {transactions.length} transaction
-                  {transactions.length !== 1 ? "s" : ""} needed to settle all
+                  {visibleTransactions.length} transaction
+                  {visibleTransactions.length !== 1 ? "s" : ""} needed to settle all
                   debts
                 </p>
               </div>
@@ -186,7 +198,7 @@ export function SimplifyDialog({
               </p>
 
               <div className="space-y-3">
-                {transactions.map((transaction, index) => (
+                {visibleTransactions.map((transaction, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Card className="flex-grow">
                       <CardContent className="p-4">
